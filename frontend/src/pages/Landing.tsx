@@ -100,7 +100,7 @@ export default function Landing() {
               <i style={{ background: '#17171e' }}>+</i>
             </span>
             <p>
-              <strong>12,400+ memories</strong> shared by early members
+              <strong>10+ memories</strong> shared by early members
             </p>
           </div>
         </motion.div>
