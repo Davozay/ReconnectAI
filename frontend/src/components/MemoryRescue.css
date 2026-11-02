@@ -1,0 +1,153 @@
+.rescue-prompt {
+  display: flex;
+  gap: 1.1rem;
+  align-items: center;
+}
+.rescue-thumb {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  flex-shrink: 0;
+}
+.rescue-prompt-body .results-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+}
+.rescue-prompt-body .results-title svg {
+  color: var(--accent-strong);
+}
+
+.rescue-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.rescue-head {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+.rescue-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rescue-head .results-title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.rescue-progress {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+.rescue-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.rescue-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.rescue-q {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.rescue-a {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--accent-soft);
+  border-radius: 4px var(--r-md) var(--r-md) var(--r-md);
+  padding: 0.5rem 0.75rem;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.rescue-message {
+  font-size: 0.92rem;
+  color: var(--text);
+  margin: 0;
+}
+.rescue-error {
+  margin: 0;
+}
+
+.rescue-ask {
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  padding: 0.9rem 1rem;
+}
+.rescue-prompt-text {
+  margin: 0 0 0.15rem;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.98rem;
+}
+.rescue-hint {
+  margin: 0 0 0.7rem;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.rescue-form {
+  display: flex;
+  gap: 0.5rem;
+}
+.rescue-form .input {
+  flex: 1;
+  min-width: 0;
+}
+.rescue-skips {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rescue-found .finding-title {
+  font-size: 0.95rem;
+}
+.rescue-done {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.rescue-done .results-note {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .rescue-prompt {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .rescue-thumb {
+    width: 100%;
+    height: 160px;
+  }
+  .rescue-form {
+    flex-direction: column;
+  }
+  .rescue-form .btn {
+    width: 100%;
+  }
+}

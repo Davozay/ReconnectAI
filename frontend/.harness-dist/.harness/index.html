@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Harness</title>
+    <script>
+      // Test driver: seeds state from query params, performs scripted clicks,
+      // and marks completion via document.title for headless assertions.
+      (function () {
+        var q = new URLSearchParams(location.search);
+        var pref = q.get('pref');
+        var step = q.get('step') || 'none';
+        try {
+          localStorage.setItem(
+            'reconnect:user',
+            JSON.stringify({ name: 'Harness User', email: 'harness@example.com' })
+          );
+          if (pref) localStorage.setItem('reconnect:theme', pref);
+          var p = pref || 'system';
+          var d =
+            p === 'system'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : p;
+          document.documentElement.dataset.theme = d;
+        } catch (e) {
+          document.title = 'HARNESS-ERROR:seed';
+        }
+
+        function poll(sel, timeout) {
+          return new Promise(function (resolve, reject) {
+            var t0 = Date.now();
+            (function tick() {
+              var el = document.querySelector(sel);
+              if (el) return resolve(el);
+              if (Date.now() - t0 > timeout)
+                return reject(new Error('missing ' + sel));
+              setTimeout(tick, 120);
+            })();
+          });
+        }
+        function sleep(ms) {
+          return new Promise(function (r) {
+            setTimeout(r, ms);
+          });
+        }
+        function clickNth(sel, n) {
+          var els = document.querySelectorAll(sel);
+          if (!els[n]) throw new Error('missing ' + sel + '#' + n);
+          els[n].click();
+        }
+
+        window.addEventListener('load', function () {
+          (async function () {
+            try {
+              await sleep(600);
+              if (step === 'settings-pick-dark') {
+                await poll('.theme-option', 5000);
+                clickNth('.theme-option', 1);
+                await sleep(500);
+              }
+              if (step === 'settings-pick-system') {
+                await poll('.theme-option', 5000);
+                clickNth('.theme-option', 2);
+                await sleep(500);
+              }
+              if (
+                step === 'menu' ||
+                step === 'menu-pick-light' ||
+                step === 'profile' ||
+                step === 'signout'
+              ) {
+                await poll('.dash-sidebar .profile-trigger', 5000);
+                document
+                  .querySelector('.dash-sidebar .profile-trigger')
+                  .click();
+                await sleep(600);
+              }
+              if (step === 'menu-pick-light') {
+                await poll('[role="menuitemradio"]', 3000);
+                clickNth('[role="menuitemradio"]', 0);
+                await sleep(500);
+              }
+              if (step === 'profile') {
+                await poll('.profile-pop-link', 3000);
+                document.querySelector('.profile-pop-link').click();
+                await sleep(600);
+              }
+              if (step === 'signout') {
+                await poll('.profile-item.is-danger', 3000);
+                document.querySelector('.profile-item.is-danger').click();
+                await sleep(600);
+              }
+              document.title = 'HARNESS-DONE';
+            } catch (e) {
+              document.title = 'HARNESS-ERROR:' + e.message;
+            }
+          })();
+        });
+      })();
+    </script>
+    <script type="module" crossorigin src="../assets/index-D54pDtZF.js"></script>
+    <link rel="stylesheet" crossorigin href="../assets/index-C46uZJZS.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

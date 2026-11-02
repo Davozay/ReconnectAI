@@ -1,0 +1,86 @@
+.onboard {
+  min-height: 100svh;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1.25rem 3rem;
+}
+.onboard-inner {
+  width: 100%;
+  max-width: 600px;
+}
+.onboard-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.onboard-progress {
+  list-style: none;
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+.onboard-dot {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+.onboard-dot-marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-deep);
+  border: 1.5px solid var(--line);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+.onboard-dot.is-current {
+  color: var(--text);
+}
+.onboard-dot.is-current .onboard-dot-marker {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.onboard-dot.is-done .onboard-dot-marker {
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green);
+}
+@media (max-width: 520px) {
+  .onboard-dot-label {
+    display: none;
+  }
+  .onboard-dot {
+    flex: 0;
+  }
+}
+
+.onboard-card h1 {
+  font-size: 1.7rem;
+}
+.onboard-error {
+  margin-top: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, #e5484d 10%, transparent);
+  border: 1px solid color-mix(in srgb, #e5484d 35%, transparent);
+  color: #c22e33;
+  font-size: 0.88rem;
+}
+.onboard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+

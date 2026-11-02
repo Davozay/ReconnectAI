@@ -1,0 +1,83 @@
+.story-tray {
+  padding: 1rem 1.25rem;
+}
+.story-tray-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.story-tile {
+  position: relative;
+  flex-shrink: 0;
+  width: 68px;
+}
+.story-tile-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+}
+.story-ring {
+  display: inline-flex;
+  border-radius: 50%;
+  padding: 3px;
+  border: 2px solid var(--line);
+}
+.story-ring.has-stories {
+  border-color: var(--accent);
+}
+.story-ring.has-stories.is-seen {
+  border-color: var(--line);
+}
+.story-tile-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.story-add {
+  position: absolute;
+  top: 34px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.story-add:hover {
+  background: var(--accent-strong);
+}
+.story-preview {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  display: block;
+  margin-bottom: 1rem;
+}
+.story-share-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}

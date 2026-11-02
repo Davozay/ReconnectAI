@@ -1,0 +1,36 @@
+.block-confirm-list {
+  list-style: none;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.block-confirm-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+.block-confirm-list svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--text-faint);
+}
+.block-confirm-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+.block-confirm-actions .btn {
+  flex: 1;
+}
+.block-confirm-go {
+  background: #c22e33;
+  border-color: #c22e33;
+}
+.block-confirm-go:hover {
+  background: #a8262b;
+  border-color: #a8262b;
+}

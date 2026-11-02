@@ -1,0 +1,190 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.feed-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-inline: 0.25rem;
+}
+.feed-head h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+/* Composer */
+.composer {
+  padding: 1rem 1.1rem 0.85rem;
+}
+.composer-top {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.composer-input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  resize: none;
+  padding-top: 0.55rem;
+  min-height: 56px;
+}
+.composer-input:focus {
+  outline: none;
+}
+.composer-input::placeholder {
+  color: var(--text-faint);
+}
+.composer-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line-soft);
+}
+.composer-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+}
+.composer-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+.composer-tool:hover {
+  background: var(--accent-soft);
+}
+.composer-prompts {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--amber-deep);
+  min-width: 0;
+}
+.composer-prompt {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  text-align: left;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+.composer-prompt:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+@media (max-width: 560px) {
+  .composer-prompts {
+    display: none;
+  }
+}
+
+/* Post list */
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* In-feed recommendation */
+.recommend-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.recommend-head svg {
+  color: var(--accent);
+}
+.recommend-head h2 {
+  font-size: 1.05rem;
+  margin: 0;
+  flex: 1;
+}
+.recommend-sub {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+.recommend-more {
+  margin-top: 0.9rem;
+}
+.recommend-people {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.recommend-people li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.recommend-name {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.recommend-sub2 {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+.composer-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.composer-share input {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+
+.feed-post-wrap {
+  position: relative;
+}
+.feed-delete {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+}
+
+.feed-empty {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+.feed-empty h2 {
+  font-size: 1.2rem;
+}

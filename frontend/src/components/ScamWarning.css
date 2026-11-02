@@ -1,0 +1,35 @@
+.scam-warnings {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.scam-warning {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-line);
+  border-radius: var(--r-md);
+  padding: 0.75rem 0.875rem;
+  color: var(--text);
+}
+
+.scam-warning svg {
+  flex: none;
+  margin-top: 0.125rem;
+  color: var(--amber-deep);
+}
+
+.scam-warning strong {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.scam-warning p {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-soft);
+}

@@ -1,0 +1,5 @@
+# Test-only dependencies for the ReConnect AI backend.
+# Install into the project's backend/venv (never system-wide):
+#   source backend/venv/bin/activate
+#   pip install -r backend/requirements.txt -r backend/requirements-dev.txt
+pytest>=8.0

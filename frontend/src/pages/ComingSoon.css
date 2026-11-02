@@ -1,0 +1,22 @@
+.soon {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  max-width: 620px;
+  margin: 1rem auto;
+  color: var(--text-soft);
+}
+.soon h1 {
+  font-size: 1.8rem;
+  margin: 0.9rem 0 0.5rem;
+}
+.soon p {
+  max-width: 44ch;
+  margin: 0 auto 1.5rem;
+}
+.soon-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}

@@ -1,0 +1,24 @@
+.avatar-xs {
+  width: 26px;
+  height: 26px;
+  font-size: 0.62rem;
+}
+.avatar-xl {
+  width: 96px;
+  height: 96px;
+  font-size: 2rem;
+}
+
+.avatar-ring {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ring-1), var(--ring-2));
+  flex-shrink: 0;
+}
+.avatar-ring .avatar {
+  border: 2.5px solid var(--surface);
+}
+.avatar-ring.is-viewed {
+  background: var(--line);
+}

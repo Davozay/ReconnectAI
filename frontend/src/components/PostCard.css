@@ -1,0 +1,156 @@
+.post-card {
+  padding: 1.25rem 1.25rem 1rem;
+  position: relative;
+}
+.post-card-head {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+.post-card-author {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.post-card-handle {
+  font-weight: 500;
+  color: var(--text-faint);
+  font-size: 0.83rem;
+}
+.post-card-meta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+.post-card-text {
+  color: var(--text);
+  font-size: 0.96rem;
+  margin-bottom: 0.75rem;
+  overflow-wrap: break-word;
+}
+.post-card-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.post-media {
+  display: grid;
+  gap: 0.5rem;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+.post-media.count-1 {
+  grid-template-columns: 1fr;
+}
+.post-media.count-2 {
+  grid-template-columns: 1fr 1fr;
+}
+.post-media.count-3 {
+  grid-template-columns: 1fr 1fr;
+}
+.post-media.count-3 .post-media-btn:first-child {
+  grid-row: span 2;
+}
+.post-media.count-3 .post-media-btn:first-child .memory-art {
+  height: 100%;
+  aspect-ratio: auto;
+}
+.post-media-btn {
+  border: 0;
+  padding: 0;
+  cursor: zoom-in;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-deep);
+  min-height: 120px;
+}
+.post-media.is-reel .post-media-btn:first-child {
+  cursor: zoom-in;
+}
+.post-media-btn .memory-art {
+  height: 100%;
+}
+.reel-badge {
+  position: absolute;
+  left: 0.7rem;
+  top: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(10, 10, 15, 0.55);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--r-pill);
+}
+
+.post-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-top: 0.55rem;
+}
+.post-card-actions .post-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--r-pill);
+  transition:
+    background var(--dur-fast),
+    color var(--dur-fast);
+}
+.post-card-actions .post-action:hover {
+  background: var(--surface-tint);
+  color: var(--text);
+}
+.post-card-actions .post-action.is-liked {
+  color: var(--rose);
+}
+.post-card-actions .post-action.is-active {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+.post-card-actions .post-action.is-saved {
+  color: var(--amber-deep);
+}
+.post-share {
+  margin-left: auto;
+}
+
+.post-card-locale {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .post-card-locale {
+    display: none;
+  }
+}

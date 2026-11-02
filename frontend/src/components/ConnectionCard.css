@@ -1,0 +1,131 @@
+.conn-card {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast);
+}
+.conn-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.conn-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+.conn-name {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+.conn-nick {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--amber-deep);
+  font-weight: 600;
+}
+.conn-detail {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.conn-facts {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.conn-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+.conn-badges .pill {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conn-why {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.conn-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  flex-wrap: wrap;
+}
+.conn-actions .btn {
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* Modal */
+.conn-modal-head {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.conn-modal-name {
+  margin: 0;
+  font-size: 1.35rem;
+}
+.conn-modal-detail {
+  margin: 0.15rem 0 0;
+  font-size: 0.87rem;
+}
+.conn-modal-head + .conn-badges {
+  margin-bottom: 1rem;
+}
+.conn-modal-why {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.conn-modal-why + .match-reasons {
+  margin-bottom: 1rem;
+}
+.conn-modal-note {
+  margin-bottom: 1.1rem;
+}
+.conn-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.match-reasons {
+  margin: 0.6rem 0 0.85rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.match-reasons li {
+  font-size: 0.86rem;
+  color: var(--text-soft);
+  padding-left: 1.1rem;
+  position: relative;
+}
+.match-reasons li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.78rem;
+}

@@ -1,0 +1,116 @@
+.connections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.section-title {
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.count-badge {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--amber);
+  color: #fff;
+  border-radius: var(--r-pill);
+  padding: 0.1rem 0.55rem;
+}
+.count-badge.is-neutral {
+  background: var(--surface-tint);
+  color: var(--text-soft);
+}
+
+.request-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.request {
+  display: flex;
+  gap: 0.85rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.request:first-child {
+  padding-top: 0;
+}
+.request:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.request-body {
+  flex: 1;
+  min-width: 0;
+}
+.request-name {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.request-handle {
+  font-weight: 500;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+}
+.request-detail {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.request-reason {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.87rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin: 0.45rem 0 0.7rem;
+}
+.request-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.connection-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+.connection {
+  text-align: center;
+  padding: 1rem 0.5rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+.connection-name {
+  margin: 0.5rem 0 0;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+.connection-detail {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+.connection-message {
+  margin-top: 0.5rem;
+}

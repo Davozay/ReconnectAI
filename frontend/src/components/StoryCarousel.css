@@ -1,0 +1,55 @@
+.stories {
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+.stories-track {
+  display: flex;
+  gap: 1.05rem;
+  overflow-x: auto;
+  padding: 0.25rem;
+}
+.story-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  min-width: 68px;
+}
+.story-item .avatar-md {
+  width: 62px;
+  height: 62px;
+  font-size: 1.15rem;
+}
+.story-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.story-mine-ring {
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+}
+.story-plus {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid var(--surface);
+}

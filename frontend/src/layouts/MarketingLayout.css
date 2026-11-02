@@ -1,0 +1,95 @@
+.marketing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+.marketing main {
+  flex: 1;
+}
+
+.marketing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.marketing-nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  height: 68px;
+}
+.marketing-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-inline: auto;
+}
+.marketing-links a {
+  color: var(--text-soft);
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+.marketing-links a:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+.marketing-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 760px) {
+  .marketing-links {
+    display: none;
+  }
+  .marketing-nav-inner {
+    gap: 1rem;
+  }
+  .marketing-cta {
+    margin-left: auto;
+  }
+  .marketing-cta .btn-ghost {
+    display: none;
+  }
+}
+
+.marketing-footer {
+  background: var(--navy-950);
+  color: #c9cfe6;
+  padding: 3rem 0 1.5rem;
+}
+.marketing-footer .logo-word {
+  color: #fffdf6;
+}
+.marketing-footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.marketing-tagline {
+  color: #8f96b8;
+  margin: 0.6rem 0 0;
+  font-size: 0.92rem;
+}
+.marketing-foot-links {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.marketing-foot-links a {
+  color: #c9cfe6;
+  font-size: 0.92rem;
+}
+.marketing-foot-base {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.marketing-foot-base small {
+  color: #767da0;
+}

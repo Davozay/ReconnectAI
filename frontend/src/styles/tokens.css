@@ -1,0 +1,126 @@
+/* ReConnect AI design system — modern social identity. */
+
+:root {
+  color-scheme: light;
+
+  /* Backgrounds */
+  --bg: #f7f8fa;
+  --bg-deep: #eef0f4;
+  --surface: #ffffff;
+  --surface-tint: #f4f5f8;
+  --field: #ffffff;
+
+  /* Ink */
+  --text: #171717;
+  --text-soft: #55555e;
+  --text-faint: #8e8e99;
+
+  /* Navy scale (dark panels, footer) */
+  --navy-950: #101016;
+  --navy-900: #17171e;
+  --navy-800: #22222c;
+
+  /* Brand indigo */
+  --accent: #6255e8;
+  --accent-strong: #4f44d6;
+  --accent-ink: #3e34b8;
+  --accent-soft: #efedfd;
+  --accent-line: #cfc9f7;
+
+  /* Accent coral (replaces amber highlights) */
+  --amber: #ff766b;
+  --amber-deep: #e85a4f;
+  --amber-soft: #ffedeb;
+  --amber-line: #ffc9c4;
+  --amber-text: #8a3d12;
+
+  /* Status */
+  --green: #16a34a;
+  --green-soft: #e7f6ec;
+  --rose: #e5484d;
+  --rose-soft: #fdecec;
+
+  /* Toast (high-contrast inverse chip) */
+  --toast-bg: #17171e;
+  --toast-fg: #ffffff;
+  --toast-icon: #7ee2a8;
+
+  /* Lines & shadows */
+  --line: #e8e8ed;
+  --line-soft: #f0f0f4;
+  --shadow-sm: 0 1px 2px rgba(23, 23, 23, 0.06);
+  --shadow-md: 0 6px 18px -6px rgba(23, 23, 23, 0.12);
+  --shadow-lg: 0 18px 44px -16px rgba(23, 23, 23, 0.2);
+
+  /* Story ring */
+  --ring-1: #6255e8;
+  --ring-2: #ff766b;
+
+  /* Type */
+  --font-display: 'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif;
+  --font-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Radii */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* Layout */
+  --maxw: 1160px;
+  --sidebar-w: 264px;
+  --rail-w: 330px;
+  --feed-w: 620px;
+  --topbar-h: 60px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur-med: 320ms;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0f1015;
+  --bg-deep: #0b0c10;
+  --surface: #1a1b23;
+  --surface-tint: #23242e;
+  --field: #0f1015;
+
+  --text: #f5f5f7;
+  --text-soft: #b9b9c4;
+  --text-faint: #82828d;
+
+  --navy-950: #0b0c10;
+  --navy-900: #14151c;
+  --navy-800: #1e1f28;
+
+  --accent: #8b80ff;
+  --accent-strong: #9d94ff;
+  --accent-ink: #c4bef9;
+  --accent-soft: #26234d;
+  --accent-line: #4a4390;
+
+  --amber: #ff8a80;
+  --amber-deep: #ff766b;
+  --amber-soft: #38211e;
+  --amber-line: #6b3a34;
+  --amber-text: #ffb4ab;
+
+  --green: #4ade80;
+  --green-soft: #142e1e;
+  --rose: #ff8a80;
+  --rose-soft: #38211e;
+
+  --toast-bg: #f5f5f7;
+  --toast-fg: #171717;
+  --toast-icon: #16a34a;
+
+  --line: #30313a;
+  --line-soft: #23242b;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px -6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 18px 44px -16px rgba(0, 0, 0, 0.6);
+}

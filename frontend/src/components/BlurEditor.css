@@ -1,0 +1,59 @@
+.blur-sub {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+.blur-stage {
+  position: relative;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: #101014;
+  touch-action: none;
+  user-select: none;
+}
+.blur-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: crosshair;
+}
+.blur-region {
+  position: absolute;
+  border: 2px dashed #fff;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.blur-region button {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--rose);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.blur-intensity {
+  margin-top: 1rem;
+}
+.blur-intensity input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.blur-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.blur-count {
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  flex: 1;
+}

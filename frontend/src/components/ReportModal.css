@@ -1,0 +1,30 @@
+.report-modal h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  margin: 0 0 0.25rem;
+}
+
+.report-modal .field {
+  margin-top: 0.875rem;
+}
+
+.report-sub {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-soft);
+}
+
+.report-modal .form-error {
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+  color: var(--rose);
+}
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  margin-top: 1.125rem;
+}
