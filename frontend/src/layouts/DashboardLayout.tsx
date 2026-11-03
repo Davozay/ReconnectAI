@@ -192,6 +192,8 @@ export default function DashboardLayout() {
               onClick={() => setDrawerOpen(true)}
               aria-label="Open navigation menu"
               aria-haspopup="dialog"
+              data-tooltip="Open navigation menu"
+              data-tooltip-pos="bottom"
             >
               <Menu size={20} aria-hidden="true" />
             </button>

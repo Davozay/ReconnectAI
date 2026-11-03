@@ -64,6 +64,21 @@
 .match-card2-action {
   flex-shrink: 0;
 }
+.match-card2.is-compact {
+  flex-wrap: wrap;
+}
+.match-card2.is-compact .match-card2-action {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+.match-card2.is-compact .match-card2-action .btn,
+.match-card2.is-compact .match-card2-action .pill {
+  width: 100%;
+  justify-content: center;
+}
+.match-card2.is-compact .match-card2-action .pill {
+  display: flex;
+}
 @media (max-width: 560px) {
   .match-card2 {
     flex-wrap: wrap;
@@ -74,15 +89,5 @@
   }
   .match-card2-action .btn {
     width: 100%;
-  }
-  .match-card2.is-compact {
-    flex-wrap: nowrap;
-  }
-  .match-card2.is-compact .match-card2-action {
-    width: auto;
-    margin-top: 0;
-  }
-  .match-card2.is-compact .match-card2-action .btn {
-    width: auto;
   }
 }

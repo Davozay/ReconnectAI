@@ -68,6 +68,8 @@ export default function MediaLightbox({
             className="lightbox-close"
             onClick={onClose}
             aria-label="Close gallery"
+            data-tooltip="Close gallery"
+            data-tooltip-pos="left"
           >
             <X size={20} aria-hidden="true" />
           </button>
@@ -81,6 +83,8 @@ export default function MediaLightbox({
                   step(-1);
                 }}
                 aria-label="Previous photo"
+                data-tooltip="Previous photo"
+                data-tooltip-pos="right"
               >
                 <ChevronLeft size={24} aria-hidden="true" />
               </button>
@@ -92,6 +96,8 @@ export default function MediaLightbox({
                   step(1);
                 }}
                 aria-label="Next photo"
+                data-tooltip="Next photo"
+                data-tooltip-pos="left"
               >
                 <ChevronRight size={24} aria-hidden="true" />
               </button>

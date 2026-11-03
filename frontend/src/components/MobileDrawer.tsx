@@ -87,6 +87,8 @@ export default function MobileDrawer({
                 className="drawer-close"
                 onClick={onClose}
                 aria-label="Close navigation menu"
+                data-tooltip="Close navigation menu"
+                data-tooltip-pos="bottom"
               >
                 <X size={20} aria-hidden="true" />
               </button>

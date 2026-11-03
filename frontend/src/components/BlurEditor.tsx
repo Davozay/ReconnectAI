@@ -197,6 +197,7 @@ export default function BlurEditor({
               <button
                 type="button"
                 aria-label={`Remove blur region ${i + 1}`}
+                data-tooltip={`Remove blur region ${i + 1}`}
                 onClick={() =>
                   setRegions((prev) => prev.filter((_, j) => j !== i))
                 }

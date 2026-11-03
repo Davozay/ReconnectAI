@@ -175,6 +175,7 @@ function MemoryPhotos({ memoryId, refreshKey }: { memoryId: string; refreshKey: 
             onClick={() => remove(row)}
             disabled={busy}
             aria-label="Delete photo"
+            data-tooltip="Delete photo"
           >
             <Trash2 size={13} aria-hidden="true" />
           </button>
@@ -186,6 +187,7 @@ function MemoryPhotos({ memoryId, refreshKey }: { memoryId: string; refreshKey: 
         onClick={() => fileRef.current?.click()}
         disabled={busy}
         aria-label="Attach a photo"
+        data-tooltip="Attach a photo"
       >
         <ImagePlus size={18} aria-hidden="true" />
       </button>
@@ -500,6 +502,7 @@ export default function Profile() {
                 onClick={() => removeCover()}
                 disabled={coverBusy}
                 aria-label="Remove cover photo"
+                data-tooltip="Remove cover photo"
               >
                 <Trash2 size={14} aria-hidden="true" />
               </button>
@@ -733,6 +736,7 @@ export default function Profile() {
                   className="btn btn-ghost btn-sm is-danger"
                   onClick={() => removeSchool(s.id)}
                   aria-label={`Remove ${s.school_name}`}
+                  data-tooltip={`Remove ${s.school_name}`}
                 >
                   <Trash2 size={14} aria-hidden="true" />
                 </button>
@@ -778,6 +782,7 @@ export default function Profile() {
                   className="btn btn-ghost btn-sm is-danger"
                   onClick={() => removePlace(l.id)}
                   aria-label={`Remove ${l.place_name}`}
+                  data-tooltip={`Remove ${l.place_name}`}
                 >
                   <Trash2 size={14} aria-hidden="true" />
                 </button>

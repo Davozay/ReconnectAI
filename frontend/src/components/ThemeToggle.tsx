@@ -17,7 +17,8 @@ export default function ThemeToggle({ size = 19 }: { size?: number }) {
       className="theme-toggle"
       onClick={toggle}
       aria-label={label}
-      title={label}
+      data-tooltip={label}
+      data-tooltip-pos="bottom"
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span

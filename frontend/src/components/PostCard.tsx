@@ -157,6 +157,7 @@ export default function PostCard({
           onClick={toggleSave}
           aria-pressed={savedNow}
           aria-label={savedNow ? 'Unsave this post' : 'Save this post'}
+          data-tooltip={savedNow ? 'Unsave this post' : 'Save this post'}
         >
           <Bookmark
             size={19}
@@ -169,6 +170,7 @@ export default function PostCard({
           className="post-action post-share"
           onClick={share}
           aria-label="Copy link to this post"
+          data-tooltip="Copy link to this post"
         >
           <Share2 size={19} aria-hidden="true" />
         </button>

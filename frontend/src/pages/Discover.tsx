@@ -179,6 +179,7 @@ export default function Discover() {
                     className="btn btn-ghost btn-sm"
                     onClick={() => setBlockTarget(p)}
                     aria-label={`Block ${p.display_name}`}
+                    data-tooltip={`Block ${p.display_name}`}
                   >
                     <Ban size={15} aria-hidden="true" />
                   </button>
@@ -187,6 +188,7 @@ export default function Discover() {
                     className="btn btn-ghost btn-sm"
                     onClick={() => setReportTarget(p)}
                     aria-label={`Report ${p.display_name}`}
+                    data-tooltip={`Report ${p.display_name}`}
                   >
                     <Flag size={15} aria-hidden="true" />
                   </button>

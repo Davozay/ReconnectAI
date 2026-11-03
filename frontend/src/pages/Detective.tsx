@@ -776,6 +776,11 @@ export default function Detective() {
                                         ? `Drop ${item.value}`
                                         : `Keep ${item.value}`
                                     }
+                                    data-tooltip={
+                                      item.confirmed
+                                        ? `Drop ${item.value}`
+                                        : `Keep ${item.value}`
+                                    }
                                     onClick={() => toggleEdit(index)}
                                   >
                                     <Check size={15} aria-hidden="true" />

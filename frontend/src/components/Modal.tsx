@@ -57,6 +57,8 @@ export default function Modal({
               className="modal-close"
               onClick={onClose}
               aria-label="Close dialog"
+              data-tooltip="Close dialog"
+              data-tooltip-pos="bottom"
             >
               <X size={18} aria-hidden="true" />
             </button>

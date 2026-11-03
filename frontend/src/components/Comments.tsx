@@ -139,6 +139,7 @@ function LiveComments({ live, currentUser }: { live: LiveThread; currentUser: st
                     className="comment-delete"
                     onClick={() => remove(c.id)}
                     aria-label="Delete comment"
+                    data-tooltip="Delete comment"
                   >
                     <Trash2 size={13} aria-hidden="true" />
                   </button>
@@ -165,6 +166,7 @@ function LiveComments({ live, currentUser }: { live: LiveThread; currentUser: st
           className="btn btn-primary btn-sm"
           disabled={!draft.trim() || posting}
           aria-label="Post comment"
+          data-tooltip="Post comment"
         >
           <Send size={14} aria-hidden="true" />
         </button>
@@ -233,6 +235,7 @@ function LocalComments({
           className="btn btn-primary btn-sm"
           disabled={!draft.trim()}
           aria-label="Post comment"
+          data-tooltip="Post comment"
         >
           <Send size={14} aria-hidden="true" />
         </button>

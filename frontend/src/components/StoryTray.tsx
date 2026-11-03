@@ -196,6 +196,8 @@ export default function StoryTray() {
             className="story-add"
             onClick={() => fileRef.current?.click()}
             aria-label="Add to your story"
+            data-tooltip="Add to your story"
+            data-tooltip-pos="bottom"
           >
             <Plus size={14} aria-hidden="true" />
           </button>

@@ -889,6 +889,8 @@ export default function Messages() {
                 className="btn btn-ghost btn-sm msg-back"
                 onClick={() => selectConversation(null)}
                 aria-label="Back to conversations"
+                data-tooltip="Back to conversations"
+                data-tooltip-pos="bottom"
               >
                 <ArrowLeft size={18} aria-hidden="true" />
               </button>
@@ -955,6 +957,8 @@ export default function Messages() {
                   onClick={() => setSearchOpen((v) => !v)}
                   aria-label="Search in conversation"
                   aria-expanded={searchOpen}
+                  data-tooltip="Search in conversation"
+                  data-tooltip-pos="bottom"
                 >
                   <Search size={15} aria-hidden="true" />
                 </button>
@@ -1008,6 +1012,7 @@ export default function Messages() {
                       className="msg-search-clear"
                       onClick={() => onSearchChange('')}
                       aria-label="Clear search"
+                      data-tooltip="Clear search"
                     >
                       <X size={15} aria-hidden="true" />
                     </button>
@@ -1124,6 +1129,7 @@ export default function Messages() {
                                     className="btn btn-primary btn-sm"
                                     onClick={() => saveEdit(m.id)}
                                     aria-label="Save edit"
+                                    data-tooltip="Save edit"
                                   >
                                     <Check size={14} aria-hidden="true" />
                                   </button>
@@ -1132,6 +1138,7 @@ export default function Messages() {
                                     className="btn btn-ghost btn-sm"
                                     onClick={() => setEditingId(null)}
                                     aria-label="Cancel edit"
+                                    data-tooltip="Cancel edit"
                                   >
                                     <X size={14} aria-hidden="true" />
                                   </button>
@@ -1202,6 +1209,7 @@ export default function Messages() {
                                   }
                                   aria-label="Message options"
                                   aria-expanded={actionsFor === m.id}
+                                  data-tooltip="Message options"
                                 >
                                   •••
                                 </button>
@@ -1298,6 +1306,7 @@ export default function Messages() {
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading || sending}
                   aria-label="Share a photo"
+                  data-tooltip="Share a photo"
                 >
                   {uploading ? (
                     <LoaderCircle size={17} className="spin" aria-hidden="true" />
@@ -1323,6 +1332,7 @@ export default function Messages() {
                   onClick={() => setShowEmoji((v) => !v)}
                   aria-label="Add emoji"
                   aria-expanded={showEmoji}
+                  data-tooltip="Add emoji"
                 >
                   <Smile size={17} aria-hidden="true" />
                 </button>
@@ -1346,6 +1356,7 @@ export default function Messages() {
                   className="msg-send"
                   disabled={!draft.trim() || sending || uploading}
                   aria-label={sending ? 'Sending message' : 'Send message'}
+                  data-tooltip={sending ? 'Sending message' : 'Send message'}
                 >
                   {sending ? (
                     <LoaderCircle size={17} className="spin" aria-hidden="true" />

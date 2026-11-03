@@ -291,7 +291,7 @@ export default function StoryViewer({
               <strong>{group.name}</strong>
               <span>{timeAgo(story.created_at)}</span>
             </div>
-            <button type="button" className="story-icon-btn" onClick={onClose} aria-label="Close story">
+            <button type="button" className="story-icon-btn" onClick={onClose} aria-label="Close story" data-tooltip="Close story" data-tooltip-pos="bottom">
               <X size={20} aria-hidden="true" />
             </button>
           </div>
