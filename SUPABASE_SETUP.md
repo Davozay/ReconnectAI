@@ -36,6 +36,7 @@ a linked project):
 | `0018_group_flavors.sql` | School/place/free group flavors; mutual place lookup; connection-gated free crews |
 | `0019_fuzzy_affiliation_match.sql` | Tolerant group matching: punctuation-insensitive + affix-tolerant school/place names |
 | `0020_story_likes.sql` | `story_likes` + RLS, `story_like` notifications, Realtime membership |
+| `0021_request_profile_visibility.sql` | Pending/declined request counterparties can read each other's profiles (fixes anonymous names in Pending Requests) |
 
 Realtime needs no dashboard toggle on Supabase Cloud — migration 0008 adds
 the messaging tables to the `supabase_realtime` publication itself. If live

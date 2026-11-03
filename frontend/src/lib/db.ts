@@ -151,7 +151,7 @@ export async function upsertMyProfile(patch: {
   return data as Profile;
 }
 
-/** Profiles by id (RLS decides visibility: discoverable or connected). */
+/** Profiles by id (RLS decides visibility: discoverable, connected, or a pending/declined request counterparty). */
 export async function getProfilesByIds(ids: string[]): Promise<Profile[]> {
   if (ids.length === 0) return [];
   await currentUserId();
