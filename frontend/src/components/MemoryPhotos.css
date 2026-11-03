@@ -1,0 +1,38 @@
+.memory-photos {
+  display: grid;
+  gap: 0.5rem;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+.memory-photos.count-1 {
+  grid-template-columns: 1fr;
+}
+.memory-photos.count-2 {
+  grid-template-columns: 1fr 1fr;
+}
+.memory-photos.count-3 {
+  grid-template-columns: 1fr 1fr;
+}
+.memory-photos.count-3 .memory-photos-btn:first-child {
+  grid-row: span 2;
+}
+.memory-photos-btn {
+  border: 0;
+  padding: 0;
+  cursor: zoom-in;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--bg-deep);
+  min-height: 120px;
+}
+.memory-photos-btn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.memory-photos.count-3 .memory-photos-btn:first-child img {
+  aspect-ratio: auto;
+}

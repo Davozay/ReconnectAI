@@ -76,6 +76,41 @@
 .composer-input::placeholder {
   color: var(--text-faint);
 }
+.composer-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.composer-photo {
+  position: relative;
+  margin-top: 0.75rem;
+  max-width: 220px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.composer-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.composer-photo-remove {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  cursor: pointer;
+}
 .composer-foot {
   display: flex;
   justify-content: space-between;

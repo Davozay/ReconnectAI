@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Lightbulb, Send, Sparkles, Trash2, X } from 'lucide-react';
+import { ImagePlus, Lightbulb, Send, Sparkles, Trash2, X } from 'lucide-react';
 import Avatar from '../components/Avatar';
 import PostCard from '../components/PostCard';
 import { PostSkeleton } from '../components/Skeleton';
@@ -11,6 +11,7 @@ import { useAuth } from '../context/useAuth';
 import { useToast } from '../context/useToast';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import {
+  addMemoryPhoto,
   createMemory,
   DbError,
   deleteMemory,
@@ -32,6 +33,7 @@ import {
 import type { Memory, Profile } from '../lib/db';
 import { cursorOf, mergeUniqueById } from '../lib/paging';
 import type { PageCursor } from '../lib/paging';
+import { StorageError, uploadMemoryPhoto } from '../lib/storage';
 import { memoryHasTag, normalizeTag } from '../lib/trending';
 import { MEMORY_PROMPTS } from '../data/mock';
 import type { FeedPost } from '../data/mock';
@@ -98,6 +100,9 @@ export default function Feed() {
   const [draft, setDraft] = useState('');
   const [shared, setShared] = useState(true);
   const [posting, setPosting] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [posts, setPosts] = useState<Memory[]>(() =>
     useCache && feedCache ? feedCache.posts : [],
   );
@@ -319,14 +324,54 @@ export default function Feed() {
     };
   }, []);
 
+  const clearPhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // The object-URL preview never leaves the device until Post is pressed.
+  useEffect(() => () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+  }, [photoPreview]);
+
+  const onPhotoPicked = (file: File | null) => {
+    if (!file) return;
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   const publish = async (e: FormEvent) => {
     e.preventDefault();
     const text = draft.trim();
-    if (!text || posting) return;
+    if ((!text && !photoFile) || posting) return;
     setPosting(true);
     try {
-      await createMemory({ body: text, shared });
+      const saved = await createMemory({ body: text, shared });
+      if (photoFile) {
+        try {
+          const up = await uploadMemoryPhoto(photoFile);
+          await addMemoryPhoto({
+            memory_id: saved.id,
+            storage_path: up.path,
+            content_type: photoFile.type,
+            bytes: photoFile.size,
+            width: up.width,
+            height: up.height,
+          });
+        } catch (photoErr) {
+          // The memory is posted; only the attachment failed.
+          toast(
+            photoErr instanceof DbError || photoErr instanceof StorageError
+              ? `Posted, but the photo failed: ${photoErr.message}`
+              : 'Posted, but the photo could not be attached.',
+          );
+        }
+      }
       setDraft('');
+      clearPhoto();
       toast(shared ? 'Your memory was shared with the community' : 'Your memory was saved privately');
       if (shared) {
         feedCache = null;
@@ -473,8 +518,39 @@ export default function Feed() {
             aria-label="Share a childhood memory"
           />
         </div>
+        {photoPreview && (
+          <div className="composer-photo">
+            <img src={photoPreview} alt="Photo attached to your memory" />
+            <button
+              type="button"
+              className="composer-photo-remove"
+              onClick={clearPhoto}
+              aria-label="Remove attached photo"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </div>
+        )}
         <div className="composer-foot">
           <div className="composer-tools">
+            <button
+              type="button"
+              className="composer-tool"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach a photo"
+            >
+              <ImagePlus size={16} aria-hidden="true" />
+              Photo
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="composer-file"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(e) => onPhotoPicked(e.target.files?.[0] ?? null)}
+            />
             <label className="composer-share">
               <input
                 type="checkbox"
@@ -500,7 +576,7 @@ export default function Feed() {
           <button
             type="submit"
             className="btn btn-primary btn-sm"
-            disabled={!draft.trim() || posting}
+            disabled={(!draft.trim() && !photoFile) || posting}
           >
             <Send size={14} aria-hidden="true" />
             {posting ? 'Posting…' : 'Post'}
@@ -569,6 +645,7 @@ export default function Feed() {
                 <PostCard
                   post={toPost(m, authorName)}
                   currentUser={name}
+                  photoMemoryId={m.id}
                   like={
                     likeCounts
                       ? {

@@ -14,6 +14,7 @@ import Comments from './Comments';
 import type { LiveThread } from './Comments';
 import MemoryArt from './MemoryArt';
 import MediaLightbox from './MediaLightbox';
+import MemoryPhotos from './MemoryPhotos';
 import { useToast } from '../context/useToast';
 import type { FeedPost } from '../data/mock';
 import './PostCard.css';
@@ -25,6 +26,7 @@ export default function PostCard({
   save,
   commentCount,
   thread,
+  photoMemoryId,
 }: {
   post: FeedPost;
   currentUser: string;
@@ -36,6 +38,8 @@ export default function PostCard({
   commentCount?: number;
   /** Live thread wiring; when absent, comments stay local-only. */
   thread?: { memoryAuthorId: string; myId: string };
+  /** Memory id whose attached photos to show; when absent, no photos load. */
+  photoMemoryId?: string;
 }) {
   const [liked, setLiked] = useState(false);
   const likedNow = like?.liked ?? liked;
@@ -122,6 +126,10 @@ export default function PostCard({
             </button>
           ))}
         </div>
+      )}
+
+      {photoMemoryId && (
+        <MemoryPhotos memoryId={photoMemoryId} label={post.tags[0] ?? 'Memory'} />
       )}
 
       <footer className="post-card-actions">
