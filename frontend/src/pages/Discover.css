@@ -14,6 +14,22 @@
   padding: 2rem 1rem;
   margin: 0;
 }
+.discover-error {
+  text-align: center;
+}
+.discover-error .btn {
+  margin-top: 0.75rem;
+}
+.discover-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding-block: 0.5rem 1rem;
+}
+.discover-more .discover-empty {
+  padding: 0;
+}
 
 .discover-note {
   display: flex;

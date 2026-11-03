@@ -335,6 +335,9 @@
   align-self: center;
   margin-bottom: 0.75rem;
 }
+.msg-sentinel {
+  height: 1px;
+}
 .msg-day-label {
   text-align: center;
   font-size: 0.76rem;

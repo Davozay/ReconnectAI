@@ -4,6 +4,21 @@
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { requireSupabase } from './supabase';
+import { cursorFilter } from './paging';
+import type { PageCursor } from './paging';
+
+/* Batch sizes (the per-surface knobs — raise/lower to tune network vs UX).
+   Feeds use cursor paging; the directory uses offset paging. */
+export const FEED_PAGE_SIZE = 12;
+export const TAG_FEED_PAGE_SIZE = 6;
+export const MY_MEMORIES_PAGE_SIZE = 12;
+export const DISCOVER_PAGE_SIZE = 12;
+
+export interface PagedResult<T> {
+  rows: T[];
+  /** True when another page MIGHT exist (limit+1 probe — never a count query). */
+  hasMore: boolean;
+}
 
 /* ---------- types ---------- */
 
@@ -183,6 +198,38 @@ export async function getDiscoverableProfiles(limit = 30): Promise<Profile[]> {
   return (data as Profile[]) ?? [];
 }
 
+/** One offset page of the opt-in directory, optionally server-searched across
+    name/hometown/nickname/bio. Offset-based (directories tolerate shifts);
+    callers dedupe by user_id. The caller is always excluded. */
+export async function searchDiscoverableProfiles(opts: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+} = {}): Promise<PagedResult<Profile>> {
+  const uid = await currentUserId();
+  const limit = opts.limit ?? DISCOVER_PAGE_SIZE;
+  const offset = Math.max(0, opts.offset ?? 0);
+  const raw = (opts.query ?? '').trim().replace(/[(),]/g, ' ').replace(/\s+/g, ' ');
+  let q = requireSupabase()
+    .from('profiles')
+    .select('*')
+    .eq('discoverable', true)
+    .neq('user_id', uid)
+    .order('updated_at', { ascending: false })
+    .order('user_id', { ascending: true })
+    .range(offset, offset + limit);
+  if (raw) {
+    const needle = `%${escapeLike(raw)}%`;
+    q = q.or(
+      `display_name.ilike.${needle},hometown.ilike.${needle},nickname.ilike.${needle},bio.ilike.${needle}`,
+    );
+  }
+  const { data, error } = await q;
+  if (error) throw toError(error, 'Could not load discovery results.');
+  const rows = (data as Profile[]) ?? [];
+  return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
+}
+
 /* ---------- childhood schools ---------- */
 
 export async function listMySchools(): Promise<ChildhoodSchool[]> {
@@ -284,6 +331,26 @@ export async function listMyMemories(): Promise<Memory[]> {
   return (data as Memory[]) ?? [];
 }
 
+/** One cursor page of the caller's own memories (newest first). */
+export async function listMyMemoriesPage(
+  limit: number = MY_MEMORIES_PAGE_SIZE,
+  cursor?: PageCursor,
+): Promise<PagedResult<Memory>> {
+  const uid = await currentUserId();
+  let q = requireSupabase()
+    .from('memories')
+    .select('*')
+    .eq('author_id', uid)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit + 1);
+  if (cursor) q = q.or(cursorFilter(cursor));
+  const { data, error } = await q;
+  if (error) throw toError(error, 'Could not load your memories.');
+  const rows = (data as Memory[]) ?? [];
+  return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
+}
+
 /** Community feed: memories other users explicitly shared. */
 export async function listSharedMemories(limit = 30): Promise<Memory[]> {
   await currentUserId();
@@ -295,6 +362,72 @@ export async function listSharedMemories(limit = 30): Promise<Memory[]> {
     .limit(limit);
   if (error) throw toError(error, 'Could not load the community feed.');
   return (data as Memory[]) ?? [];
+}
+
+/** One cursor page of the community feed (newest first, stable under inserts). */
+export async function listSharedMemoriesPage(
+  limit: number = FEED_PAGE_SIZE,
+  cursor?: PageCursor,
+): Promise<PagedResult<Memory>> {
+  await currentUserId();
+  let q = requireSupabase()
+    .from('memories')
+    .select('*')
+    .eq('shared', true)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit + 1);
+  if (cursor) q = q.or(cursorFilter(cursor));
+  const { data, error } = await q;
+  if (error) throw toError(error, 'Could not load the community feed.');
+  const rows = (data as Memory[]) ?? [];
+  return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
+}
+
+/** Shared memories created since `sinceIso` (RLS: shared + not blocked). */
+export async function listRecentSharedMemories(
+  sinceIso: string,
+  limit = 500,
+): Promise<Memory[]> {
+  await currentUserId();
+  const { data, error } = await requireSupabase()
+    .from('memories')
+    .select('*')
+    .eq('shared', true)
+    .gte('created_at', sinceIso)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw toError(error, 'Could not load recent memories.');
+  return (data as Memory[]) ?? [];
+}
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
+/** One cursor page of shared memories whose title or body mentions `#tag`
+    (case-insensitive prefilter — callers confirm exact hashtag matches
+    client-side, so a page can return fewer exact rows than `limit`). */
+export async function listSharedMemoriesByTag(
+  tag: string,
+  opts: { limit?: number; cursor?: PageCursor } = {},
+): Promise<PagedResult<Memory>> {
+  await currentUserId();
+  const limit = opts.limit ?? TAG_FEED_PAGE_SIZE;
+  const needle = `%#${escapeLike(tag)}%`;
+  let q = requireSupabase()
+    .from('memories')
+    .select('*')
+    .eq('shared', true)
+    .or(`title.ilike.${needle},body.ilike.${needle}`)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit + 1);
+  if (opts.cursor) q = q.or(cursorFilter(opts.cursor));
+  const { data, error } = await q;
+  if (error) throw toError(error, 'Could not load tagged memories.');
+  const rows = (data as Memory[]) ?? [];
+  return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
 }
 
 export async function createMemory(input: {

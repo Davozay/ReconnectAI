@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff, ScanSearch, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 import { useToast } from '../context/useToast';
 import {
   DbError,
+  MY_MEMORIES_PAGE_SIZE,
   deleteMemory,
   listMemoryPhotos,
-  listMyMemories,
+  listMyMemoriesPage,
   updateMemory,
 } from '../lib/db';
 import type { Memory, MemoryPhoto } from '../lib/db';
+import { cursorOf, mergeUniqueById } from '../lib/paging';
+import type { PageCursor } from '../lib/paging';
 import { getMemoryPhotoUrl } from '../lib/storage';
 import './Memories.css';
 
@@ -73,16 +76,35 @@ function MemoryThumbs({ memoryId }: { memoryId: string }) {
 export default function Memories() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
   const [memories, setMemories] = useState<Memory[]>([]);
+  const [cursor, setCursor] = useState<PageCursor | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
+  const loadingMoreRef = useRef(false);
+  const cursorRef = useRef<PageCursor | null>(null);
+  const hasMoreRef = useRef(true);
+
+  useEffect(() => {
+    cursorRef.current = cursor;
+    hasMoreRef.current = hasMore;
+  });
 
   useEffect(() => {
     let active = true;
-    listMyMemories()
-      .then((rows) => {
-        if (active) setMemories(rows);
+    listMyMemoriesPage(MY_MEMORIES_PAGE_SIZE)
+      .then((page) => {
+        if (!active) return;
+        setMemories(page.rows);
+        setCursor(page.rows.length > 0 ? cursorOf(page.rows[page.rows.length - 1]) : null);
+        setHasMore(page.hasMore);
+        setFailed(false);
       })
       .catch((err: unknown) => {
         if (active) {
+          setFailed(true);
           toast(err instanceof DbError ? err.message : 'Could not load your memories.');
         }
       })
@@ -92,7 +114,37 @@ export default function Memories() {
     return () => {
       active = false;
     };
-  }, [toast]);
+  }, [toast, retryKey]);
+
+  const loadMore = () => {
+    const c = cursorRef.current;
+    if (loadingMoreRef.current || !hasMoreRef.current || !c) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    setMoreFailed(false);
+    listMyMemoriesPage(MY_MEMORIES_PAGE_SIZE, c)
+      .then((page) => {
+        setMemories((prev) => mergeUniqueById(prev, page.rows));
+        setCursor(
+          page.rows.length > 0 ? cursorOf(page.rows[page.rows.length - 1]) : c,
+        );
+        setHasMore(page.hasMore);
+      })
+      .catch((err: unknown) => {
+        setMoreFailed(true);
+        toast(err instanceof DbError ? err.message : 'Could not load more memories.');
+      })
+      .finally(() => {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      });
+  };
+
+  const retryFirstPage = () => {
+    setFailed(false);
+    setLoading(true);
+    setRetryKey((k) => k + 1);
+  };
 
   const toggleShared = async (memory: Memory) => {
     try {
@@ -138,7 +190,7 @@ export default function Memories() {
           <p>
             {memories.length === 0
               ? 'Every childhood memory you’ve saved.'
-              : `${memories.length} saved · ${memories.filter((m) => m.shared).length} shared`}
+              : `${memories.length} shown${hasMore ? ' so far' : ''} · ${memories.filter((m) => m.shared).length} shared`}
           </p>
         </div>
         <Link to="/app/detective" className="btn btn-primary btn-sm">
@@ -147,7 +199,21 @@ export default function Memories() {
         </Link>
       </div>
 
-      {memories.length === 0 ? (
+      {failed && memories.length === 0 ? (
+        <div className="card card-pad mem-empty">
+          <h2>Could not load your memories</h2>
+          <p>Check your connection and try again.</p>
+          <div className="mem-empty-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={retryFirstPage}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      ) : memories.length === 0 ? (
         <div className="card card-pad mem-empty">
           <h2>No memories yet</h2>
           <p>Run the Memory Detective on an old photo, or post from the Home feed.</p>
@@ -203,6 +269,32 @@ export default function Memories() {
             </li>
           ))}
         </ul>
+      )}
+      {memories.length > 0 && (hasMore || moreFailed) && (
+        <div className="mem-more">
+          {moreFailed ? (
+            <>
+              <p className="empty-note">Could not load more memories.</p>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={loadMore}
+              >
+                Retry
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={loadMore}
+              disabled={loadingMore}
+              aria-busy={loadingMore}
+            >
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

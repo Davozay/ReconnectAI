@@ -19,6 +19,8 @@ import Memories from './pages/Memories';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import Connections from './pages/Connections';
+import Communities from './pages/Communities';
+import CommunityDetails from './pages/CommunityDetails';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import Moderation from './pages/Moderation';
@@ -125,6 +127,22 @@ export default function App() {
           element={
             <Protected>
               <Connections />
+            </Protected>
+          }
+        />
+        <Route
+          path="communities"
+          element={
+            <Protected>
+              <Communities />
+            </Protected>
+          }
+        />
+        <Route
+          path="communities/:id"
+          element={
+            <Protected>
+              <CommunityDetails />
             </Protected>
           }
         />

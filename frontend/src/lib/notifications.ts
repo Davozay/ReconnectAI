@@ -6,7 +6,13 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { requireSupabase } from './supabase';
 import { DbError } from './db';
+import type { PagedResult } from './db';
+import { cursorFilter } from './paging';
+import type { PageCursor } from './paging';
 import type { RealtimeStatus } from './messages';
+
+/** Notifications batch size (cursor-paged, newest first). */
+export const NOTIFICATIONS_PAGE_SIZE = 15;
 
 export interface Notification {
   id: string;
@@ -41,6 +47,30 @@ export async function listNotifications(limit = 30): Promise<Notification[]> {
     .limit(limit);
   if (error) throw new DbError(error.message || 'Could not load notifications.');
   return (data as Notification[]) ?? [];
+}
+
+/** One cursor page of the caller's notifications (newest first, stable under
+    realtime inserts at the top). Filter server-side when unread-only. */
+export async function listNotificationsPage(opts: {
+  limit?: number;
+  cursor?: PageCursor;
+  unreadOnly?: boolean;
+} = {}): Promise<PagedResult<Notification>> {
+  const uid = await currentUserId();
+  const limit = opts.limit ?? NOTIFICATIONS_PAGE_SIZE;
+  let q = requireSupabase()
+    .from('notifications')
+    .select('*')
+    .eq('recipient_id', uid)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit + 1);
+  if (opts.unreadOnly) q = q.eq('is_read', false);
+  if (opts.cursor) q = q.or(cursorFilter(opts.cursor));
+  const { data, error } = await q;
+  if (error) throw new DbError(error.message || 'Could not load notifications.');
+  const rows = (data as Notification[]) ?? [];
+  return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
 }
 
 export async function unreadNotificationCount(): Promise<number> {

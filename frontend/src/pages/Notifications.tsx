@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCheck, Heart, MessageCircle, Sparkles, UserPlus } from 'lucide-react';
 import { useToast } from '../context/useToast';
+import { useUnreadNotifications } from '../context/useUnreadNotifications';
 import { DbError, getDiscoverableProfiles } from '../lib/db';
 import {
-  listNotifications,
+  NOTIFICATIONS_PAGE_SIZE,
+  listNotificationsPage,
   markAllNotificationsRead,
   markNotificationRead,
   subscribeNotifications,
 } from '../lib/notifications';
 import type { Notification } from '../lib/notifications';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import { cursorOf, mergeUniqueById } from '../lib/paging';
+import type { PageCursor } from '../lib/paging';
 import './Notifications.css';
 
 const ICONS = {
@@ -101,23 +106,72 @@ export default function Notifications() {
   const [names, setNames] = useState<Record<string, string>>({});
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
+  const [cursor, setCursor] = useState<PageCursor | null>(null);
+  const [hasMore, setHasMore] = useState(true);
   const [missingConfig, setMissingConfig] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  // Accurate unread total: the live badge count minus reads made on this
+  // page (the badge only refetches on new arrivals). Falls back to at least
+  // the loaded unread rows while the count is still resolving. The delta
+  // resets whenever a fresh count arrives.
+  const unreadTotal = useUnreadNotifications();
+  const [readAdjust, setReadAdjust] = useState({ base: -1, delta: 0 });
+  const syncedDelta = readAdjust.base === unreadTotal ? readAdjust.delta : 0;
+  const unread = Math.max(
+    unreadTotal - syncedDelta,
+    items.filter((n) => !n.is_read).length,
+  );
+  const loadingMoreRef = useRef(false);
+  const cursorRef = useRef<PageCursor | null>(null);
+  const hasMoreRef = useRef(true);
+  const filterRef = useRef(false);
 
   useEffect(() => {
+    cursorRef.current = cursor;
+    hasMoreRef.current = hasMore;
+    filterRef.current = showUnreadOnly;
+  });
+
+  // Actor display names (directory snapshot, once per mount).
+  useEffect(() => {
     let active = true;
-    Promise.all([listNotifications(30), getDiscoverableProfiles(100)])
-      .then(([rows, profiles]) => {
+    getDiscoverableProfiles(100)
+      .then((profiles) => {
         if (!active) return;
-        setItems(rows);
         const map: Record<string, string> = {};
         for (const p of profiles) map[p.user_id] = p.display_name;
         setNames(map);
+      })
+      .catch(() => {
+        // Names fall back to "A ReConnect member".
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // First page (resets whenever the All/Unread filter changes).
+  useEffect(() => {
+    let active = true;
+    const unreadOnly = showUnreadOnly;
+    listNotificationsPage({ limit: NOTIFICATIONS_PAGE_SIZE, unreadOnly })
+      .then((page) => {
+        if (!active) return;
+        setItems(page.rows);
+        setCursor(page.rows.length > 0 ? cursorOf(page.rows[page.rows.length - 1]) : null);
+        setHasMore(page.hasMore);
+        setFailed(false);
+        setMoreFailed(false);
       })
       .catch((err: unknown) => {
         if (!active) return;
         if (isMissingTable(err)) {
           setMissingConfig(true);
         } else {
+          setFailed(true);
           toast(err instanceof DbError ? err.message : 'Could not load notifications.');
         }
       })
@@ -127,7 +181,7 @@ export default function Notifications() {
     return () => {
       active = false;
     };
-  }, [toast]);
+  }, [toast, showUnreadOnly, retryKey]);
 
   useEffect(() => {
     return subscribeNotifications((n) => {
@@ -136,12 +190,61 @@ export default function Notifications() {
     });
   }, [toast]);
 
-  const visible = showUnreadOnly ? items.filter((n) => !n.is_read) : items;
-  const unread = items.filter((n) => !n.is_read).length;
+  const loadMore = () => {
+    const c = cursorRef.current;
+    if (loadingMoreRef.current || !hasMoreRef.current || !c) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    setMoreFailed(false);
+    listNotificationsPage({
+      limit: NOTIFICATIONS_PAGE_SIZE,
+      cursor: c,
+      unreadOnly: filterRef.current,
+    })
+      .then((page) => {
+        setItems((prev) => mergeUniqueById(prev, page.rows));
+        setCursor(
+          page.rows.length > 0 ? cursorOf(page.rows[page.rows.length - 1]) : c,
+        );
+        setHasMore(page.hasMore);
+      })
+      .catch((err: unknown) => {
+        setMoreFailed(true);
+        toast(err instanceof DbError ? err.message : 'Could not load older notifications.');
+      })
+      .finally(() => {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      });
+  };
+
+  const sentinelRef = useInfiniteScroll({
+    onLoadMore: loadMore,
+    hasMore,
+    loading: loadingMore,
+    disabled: loading,
+  });
+
+  const retryFirstPage = () => {
+    setFailed(false);
+    setLoading(true);
+    setRetryKey((k) => k + 1);
+  };
+
+  const visible = items;
 
   const open = async (n: Notification) => {
     if (!n.is_read) {
-      setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)));
+      setReadAdjust((s) => ({
+        base: unreadTotal,
+        delta: (s.base === unreadTotal ? s.delta : 0) + 1,
+      }));
+      // In Unread mode a read item leaves the list (matches the old filter).
+      setItems((prev) =>
+        showUnreadOnly
+          ? prev.filter((x) => x.id !== n.id)
+          : prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)),
+      );
       try {
         await markNotificationRead(n.id);
       } catch {
@@ -156,7 +259,11 @@ export default function Notifications() {
   };
 
   const markAll = async () => {
-    setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    // Mark-all reads EVERYTHING server-side (beyond loaded pages too).
+    setReadAdjust({ base: unreadTotal, delta: unreadTotal });
+    setItems((prev) =>
+      showUnreadOnly ? prev.filter((n) => n.is_read) : prev.map((n) => ({ ...n, is_read: true })),
+    );
     try {
       await markAllNotificationsRead();
     } catch (err) {
@@ -224,6 +331,17 @@ export default function Notifications() {
 
         {loading ? (
           <p className="empty-note">Loading your notifications…</p>
+        ) : failed && visible.length === 0 ? (
+          <div className="notif-error">
+            <p className="empty-note">Could not load notifications. Check your connection.</p>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={retryFirstPage}
+            >
+              Retry
+            </button>
+          </div>
         ) : (
           <>
             <ul className="notif-list">
@@ -267,6 +385,22 @@ export default function Notifications() {
                   'No unread notifications.'
                 )}
               </p>
+            )}
+            {hasMore && !moreFailed && (
+              <div ref={sentinelRef} className="notif-sentinel" aria-hidden="true" />
+            )}
+            {loadingMore && <p className="empty-note">Loading older notifications…</p>}
+            {moreFailed && (
+              <div className="notif-error">
+                <p className="empty-note">Could not load older notifications.</p>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={loadMore}
+                >
+                  Retry
+                </button>
+              </div>
             )}
           </>
         )}

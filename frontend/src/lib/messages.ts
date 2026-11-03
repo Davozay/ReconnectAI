@@ -7,6 +7,11 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { requireSupabase } from './supabase';
 import { DbError, getProfilesByIds } from './db';
 import type { Profile } from './db';
+import { cursorFilter } from './paging';
+import type { PageCursor } from './paging';
+
+/** Chat history batch size (newest page first, older pages scroll upward). */
+export const MESSAGES_PAGE_SIZE = 30;
 
 /* ---------- types ---------- */
 
@@ -265,17 +270,25 @@ export async function listConversations(): Promise<ConversationPreview[]> {
 
 export async function listMessages(
   conversationId: string,
-  opts: { limit?: number; before?: string } = {},
+  opts: { limit?: number; before?: string; beforeId?: string } = {},
 ): Promise<{ messages: Message[]; hasMore: boolean }> {
   await currentUserId();
-  const limit = opts.limit ?? 30;
+  const limit = opts.limit ?? MESSAGES_PAGE_SIZE;
   let q = requireSupabase()
     .from('messages')
     .select('*')
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .limit(limit + 1);
-  if (opts.before) q = q.lt('created_at', opts.before);
+  if (opts.before) {
+    // (created_at, id) cursor: same-instant messages can no longer slip
+    // between pages. beforeId-less callers keep the legacy behavior.
+    const cursor: PageCursor | null = opts.beforeId
+      ? { created_at: opts.before, id: opts.beforeId }
+      : null;
+    q = cursor ? q.or(cursorFilter(cursor)) : q.lt('created_at', opts.before);
+  }
   const { data, error } = await q;
   if (error) throw toError(error, 'Could not load messages.');
   const rows = (data as Message[]) ?? [];

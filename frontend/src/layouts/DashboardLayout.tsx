@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -11,22 +11,25 @@ import {
   UserRound,
 } from 'lucide-react';
 import Logo from '../components/Logo';
-import MatchCard from '../components/MatchCard';
+import MembershipButton from '../components/MembershipButton';
 import MemoryArt from '../components/MemoryArt';
 import MobileDrawer from '../components/MobileDrawer';
 import ProfileMenu from '../components/ProfileMenu';
-import SimBadge from '../components/SimBadge';
+import SuggestedForYou from '../components/SuggestedForYou';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/useAuth';
-import { useToast } from '../context/useToast';
 import { useUnreadMessages } from '../context/useUnreadMessages';
 import { useUnreadNotifications } from '../context/useUnreadNotifications';
 import { MAIN_NAV, SETTINGS_ITEM } from './nav-items';
 import {
-  MOCK_COMMUNITIES,
-  MOCK_MATCHES,
-  MOCK_TRENDING,
-} from '../data/mock';
+  formatMemberCount,
+  getMemberCounts,
+  listCommunities,
+  listMyCommunityIds,
+} from '../lib/communities';
+import type { Community } from '../lib/communities';
+import { formatMemoryCount, listTrendingTags } from '../lib/trending';
+import type { TrendingTag } from '../lib/trending';
 import './DashboardLayout.css';
 
 const NAV = [...MAIN_NAV, SETTINGS_ITEM];
@@ -39,81 +42,175 @@ const TABS = [
   { to: '/app/profile', label: 'Profile', icon: UserRound, end: false },
 ];
 
-function JoinButton({ name }: { name: string }) {
-  const [joined, setJoined] = useState(false);
-  const { toast } = useToast();
-  if (joined) {
-    return (
-      <span className="pill pill-green">
-        Joined
-      </span>
-    );
-  }
+function CommunitiesRail() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [communities, setCommunities] = useState<Community[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [mine, setMine] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    listCommunities(3)
+      .then(async (rows) => {
+        if (!active) return;
+        setCommunities(rows);
+        const ids = rows.map((c) => c.id);
+        const [loadedCounts, myIds] = await Promise.all([
+          getMemberCounts(ids),
+          listMyCommunityIds(ids),
+        ]);
+        if (!active) return;
+        setCounts(loadedCounts);
+        setMine(myIds);
+      })
+      .catch(() => {
+        if (active) setFailed(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const membershipChanged = (id: string, joined: boolean) => {
+    setMine((prev) => {
+      const next = new Set(prev);
+      if (joined) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+    setCounts((prev) => ({
+      ...prev,
+      [id]: Math.max(0, (prev[id] ?? (joined ? 0 : 1)) + (joined ? 1 : -1)),
+    }));
+  };
+
   return (
-    <button
-      type="button"
-      className="btn btn-outline btn-sm"
-      onClick={() => {
-        setJoined(true);
-        toast(`You joined ${name}`);
-      }}
-    >
-      Join
-    </button>
+    <div className="card card-pad rail-card">
+      <div className="rail-head">
+        <h2>Childhood communities</h2>
+        <Link to="/app/communities">See all</Link>
+      </div>
+      {!user ? (
+        <p className="rail-note">
+          <Link to="/login">Sign in</Link> to browse communities.
+        </p>
+      ) : loading ? (
+        <p className="rail-note">Loading communities…</p>
+      ) : failed ? (
+        <p className="rail-note">Could not load communities.</p>
+      ) : communities.length === 0 ? (
+        <p className="rail-note">
+          No communities yet — <Link to="/app/communities">start the first one</Link>.
+        </p>
+      ) : (
+        <ul className="rail-list">
+          {communities.map((c) => (
+            <li key={c.id} className="rail-row">
+              <Link
+                to={`/app/communities/${c.id}`}
+                className="rail-thumb"
+                aria-label={`Open ${c.name}`}
+              >
+                <MemoryArt
+                  seed={c.image_seed || `community-${c.id}`}
+                  label=""
+                  ratio="square"
+                />
+              </Link>
+              <div className="rail-row-body">
+                <Link to={`/app/communities/${c.id}`} className="rail-row-link">
+                  {c.name}
+                </Link>
+                <p className="rail-row-sub">{formatMemberCount(counts[c.id] ?? 0)}</p>
+              </div>
+              <MembershipButton
+                communityId={c.id}
+                communityName={c.name}
+                joined={mine.has(c.id)}
+                onChange={(joined) => membershipChanged(c.id, joined)}
+                small
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function TrendingRail() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [tags, setTags] = useState<TrendingTag[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    listTrendingTags()
+      .then((rows) => {
+        if (active) setTags(rows);
+      })
+      .catch(() => {
+        if (active) setFailed(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  return (
+    <div className="card card-pad rail-card">
+      <div className="rail-head">
+        <h2>Trending memories</h2>
+      </div>
+      {!user ? (
+        <p className="rail-note">
+          <Link to="/login">Sign in</Link> to see what the community remembers.
+        </p>
+      ) : loading ? (
+        <p className="rail-note">Finding trending memories…</p>
+      ) : failed ? (
+        <p className="rail-note">Could not load trending memories.</p>
+      ) : tags.length === 0 ? (
+        <p className="rail-note">
+          Nothing trending yet — share a memory with a #hashtag to start one.
+        </p>
+      ) : (
+        <ul className="rail-list">
+          {tags.map((t) => (
+            <li key={t.tag}>
+              <Link to={`/app?tag=${encodeURIComponent(t.tag)}`} className="rail-trend">
+                <strong>#{t.display}</strong>
+                <span>{formatMemoryCount(t.memoryCount)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
 function RightRail() {
   return (
     <aside className="dash-rail" aria-label="Suggestions and trends">
-      <div className="card card-pad rail-card">
-        <div className="rail-head">
-          <h2>Suggested for you</h2>
-          <Link to="/app/discover">See all</Link>
-        </div>
-        {MOCK_MATCHES.slice(0, 3).map((m) => (
-          <MatchCard key={m.id} match={m} compact />
-        ))}
-      </div>
+      <SuggestedForYou limit={6} />
 
-      <div className="card card-pad rail-card">
-        <div className="rail-head">
-          <h2>Childhood communities</h2>
-        </div>
-        <ul className="rail-list">
-          {MOCK_COMMUNITIES.map((c) => (
-            <li key={c.id} className="rail-row">
-              <span className="rail-thumb">
-                <MemoryArt seed={c.seed} label="" ratio="square" />
-              </span>
-              <div className="rail-row-body">
-                <p className="rail-row-name">{c.name}</p>
-                <p className="rail-row-sub">{c.members}</p>
-              </div>
-              <JoinButton name={c.name} />
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="card card-pad rail-card">
-        <div className="rail-head">
-          <h2>Trending memories</h2>
-        </div>
-        <ul className="rail-list">
-          {MOCK_TRENDING.map((t) => (
-            <li key={t.id}>
-              <Link to="/app/discover" className="rail-trend">
-                <strong>{t.tag}</strong>
-                <span>{t.count}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <CommunitiesRail />
+      <TrendingRail />
 
       <p className="rail-foot">
-        ReConnect AI demo · Mock data · <SimBadge label="Simulated" />
+        ReConnect AI · Rediscover people. Relive memories.
       </p>
     </aside>
   );

@@ -191,32 +191,6 @@ export const MOCK_MATCHES: PotentialMatch[] = [
   },
 ];
 
-export interface Community {
-  id: string;
-  name: string;
-  members: string;
-  color: string;
-  seed: string;
-}
-
-export const MOCK_COMMUNITIES: Community[] = [
-  { id: 'g1', name: 'Maplewood Elementary Alumni', members: '2.1k members', color: '#6255e8', seed: 'maplewood' },
-  { id: 'g2', name: 'Riverside ’90s Kids', members: '864 members', color: '#e85a4f', seed: 'riverside' },
-  { id: 'g3', name: 'St. Anne’s Class of 2005', members: '312 members', color: '#0ea5e9', seed: 'stanne' },
-];
-
-export interface TrendingTag {
-  id: string;
-  tag: string;
-  count: string;
-}
-
-export const MOCK_TRENDING: TrendingTag[] = [
-  { id: 't1', tag: '#SportsDay98', count: '214 memories' },
-  { id: 't2', tag: '#MrsWhitfield', count: '96 memories' },
-  { id: 't3', tag: '#ClassPicnic97', count: '78 memories' },
-];
-
 export interface MemoryPrompt {
   id: string;
   prompt: string;

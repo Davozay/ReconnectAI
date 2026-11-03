@@ -10,6 +10,41 @@
   gap: 1rem;
   padding-inline: 0.25rem;
 }
+.tag-filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.tag-filter p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+.tag-filter strong {
+  color: var(--text);
+}
+.feed-sentinel {
+  height: 1px;
+}
+.feed-end {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+.feed-more-error {
+  text-align: center;
+}
+.feed-more-error p {
+  margin: 0 0 0.75rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+.feed-load-more {
+  align-self: center;
+}
 .feed-head h1 {
   font-size: 1.4rem;
   margin: 0;

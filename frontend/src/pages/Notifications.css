@@ -71,3 +71,13 @@
   background: var(--accent);
   flex-shrink: 0;
 }
+.notif-sentinel {
+  height: 1px;
+}
+.notif-error {
+  text-align: center;
+  padding-bottom: 0.5rem;
+}
+.notif-error .empty-note {
+  margin-bottom: 0.75rem;
+}

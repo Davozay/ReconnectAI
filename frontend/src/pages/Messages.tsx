@@ -25,6 +25,7 @@ import NewGroupModal from '../components/NewGroupModal';
 import ReportModal from '../components/ReportModal';
 import { useAuth } from '../context/useAuth';
 import { useToast } from '../context/useToast';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import {
   DbError,
   blockUser,
@@ -36,6 +37,7 @@ import {
 } from '../lib/db';
 import type { ReconnectionRequest } from '../lib/db';
 import {
+  MESSAGES_PAGE_SIZE,
   deleteMessage,
   editMessage,
   getReads,
@@ -357,7 +359,7 @@ export default function Messages() {
     if (!activeId) return;
     let active = true;
     const convId = activeId;
-    listMessages(convId, { limit: 30 })
+    listMessages(convId, { limit: MESSAGES_PAGE_SIZE })
       .then(({ messages: rows, hasMore: more }) => {
         if (!active) return;
         rows.forEach((m) => seenRef.current.add(m.id));
@@ -540,19 +542,36 @@ export default function Messages() {
     }
   };
 
+  const loadingOlderRef = useRef(false);
+
+  useEffect(() => {
+    loadingOlderRef.current = loadingOlder;
+  });
+
   const loadOlder = async () => {
     const convId = activeIdRef.current;
-    const oldest = messages[0]?.created_at;
-    if (!convId || !oldest || loadingOlder) return;
+    const oldest = messages[0];
+    if (!convId || !oldest || loadingOlderRef.current) return;
+    loadingOlderRef.current = true;
     setLoadingOlder(true);
+    const el = scrollRef.current;
+    const prevHeight = el?.scrollHeight ?? 0;
+    const prevTop = el?.scrollTop ?? 0;
     try {
       const { messages: older, hasMore: more } = await listMessages(convId, {
-        limit: 30,
-        before: oldest,
+        limit: MESSAGES_PAGE_SIZE,
+        before: oldest.created_at,
+        beforeId: oldest.id,
       });
       older.forEach((m) => seenRef.current.add(m.id));
       setMessages((prev) => [...older, ...prev]);
       setHasMore(more);
+      // Preserve the reading position across the prepend (after paint).
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (el) el.scrollTop = prevTop + (el.scrollHeight - prevHeight);
+        });
+      });
       const ids = older.map((m) => m.id);
       if (ids.length > 0) {
         const r = await listReactions(ids);
@@ -561,9 +580,21 @@ export default function Messages() {
     } catch (err) {
       toast(errMessage(err));
     } finally {
+      loadingOlderRef.current = false;
       setLoadingOlder(false);
     }
   };
+
+  // Auto-load older history when scrolled to the top (the button stays as
+  // an explicit fallback and retry).
+  const olderSentinelRef = useInfiniteScroll({
+    onLoadMore: () => {
+      void loadOlder();
+    },
+    hasMore,
+    loading: loadingOlder,
+    disabled: loadingThread,
+  });
 
   /* ---------- in-thread search ---------- */
 
@@ -615,13 +646,15 @@ export default function Messages() {
     if (!convId) return;
     if (!messages.some((m) => m.id === id)) {
       let oldest = messages[0]?.created_at;
+      let oldestId = messages[0]?.id;
       if (!oldest) return;
       setLoadingOlder(true);
       try {
         for (let page = 0; page < 10; page += 1) {
           const { messages: older, hasMore: more } = await listMessages(convId, {
-            limit: 30,
+            limit: MESSAGES_PAGE_SIZE,
             before: oldest,
+            beforeId: oldestId,
           });
           if (older.length === 0) {
             setHasMore(false);
@@ -634,6 +667,7 @@ export default function Messages() {
             break;
           }
           oldest = older[0].created_at;
+          oldestId = older[0].id;
           if (!more) {
             setHasMore(false);
             break;
@@ -1078,6 +1112,9 @@ export default function Messages() {
                 </div>
               ) : (
                 <>
+                  {hasMore && !loadingOlder && (
+                    <div ref={olderSentinelRef} className="msg-sentinel" aria-hidden="true" />
+                  )}
                   {hasMore && (
                     <button
                       type="button"

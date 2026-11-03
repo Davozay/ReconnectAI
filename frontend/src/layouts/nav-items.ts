@@ -8,6 +8,7 @@ import {
   Settings as SettingsIcon,
   UserRound,
   Users,
+  UsersRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -31,6 +32,7 @@ export const MAIN_NAV: NavItem[] = [
   },
   { to: '/app/memories', label: 'Memories', icon: BookHeart, end: false },
   { to: '/app/connections', label: 'Connections', icon: Users, end: false },
+  { to: '/app/communities', label: 'Communities', icon: UsersRound, end: false },
   { to: '/app/messages', label: 'Messages', icon: MessagesSquare, end: false },
   { to: '/app/notifications', label: 'Notifications', icon: Bell, end: false },
   { to: '/app/profile', label: 'Profile', icon: UserRound, end: false },

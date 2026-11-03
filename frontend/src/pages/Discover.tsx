@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Ban, Flag, Search, ShieldCheck, UserPlus } from 'lucide-react';
 import Avatar from '../components/Avatar';
@@ -8,9 +8,10 @@ import { useAuth } from '../context/useAuth';
 import { useToast } from '../context/useToast';
 import {
   DbError,
+  DISCOVER_PAGE_SIZE,
   blockUser,
-  getDiscoverableProfiles,
   listMyRequests,
+  searchDiscoverableProfiles,
   sendRequest,
 } from '../lib/db';
 import type { Profile } from '../lib/db';
@@ -28,23 +29,47 @@ export default function Discover() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
   const [requested, setRequested] = useState<Set<string>>(new Set());
   const [connectedIds, setConnectedIds] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState<string | null>(null);
   const [blockTarget, setBlockTarget] = useState<Profile | null>(null);
   const [blocking, setBlocking] = useState(false);
   const [reportTarget, setReportTarget] = useState<Profile | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   const myId = user?.id;
+  const requestIdRef = useRef(0);
+  const loadingMoreRef = useRef(false);
+  const offsetRef = useRef(0);
+  const hasMoreRef = useRef(true);
+  const queryRef = useRef('');
 
   useEffect(() => {
+    offsetRef.current = offset;
+    hasMoreRef.current = hasMore;
+    queryRef.current = debouncedQuery;
+  });
+
+  // Debounce keystrokes into server searches (250ms).
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query), 250);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  // Connection state for the action buttons (fetched once per mount).
+  useEffect(() => {
     let active = true;
-    Promise.all([getDiscoverableProfiles(50), listMyRequests()])
-      .then(([rows, requests]) => {
+    listMyRequests()
+      .then((requests) => {
         if (!active) return;
-        setProfiles(rows.filter((p) => p.user_id !== myId));
         setRequested(
           new Set([
             ...requests.outgoing.filter((r) => r.status === 'pending').map((r) => r.to_id),
@@ -57,24 +82,76 @@ export default function Discover() {
           ),
         );
       })
-      .catch((err: unknown) => {
-        if (active) toast(err instanceof DbError ? err.message : 'Could not load discovery.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
+      .catch(() => {
+        // Buttons fall back to "Connect"; the server guards duplicates.
       });
     return () => {
       active = false;
     };
-  }, [toast, myId]);
+  }, [myId]);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return profiles;
-    return profiles.filter((p) =>
-      [p.display_name, p.hometown, p.nickname, p.bio].join(' ').toLowerCase().includes(q),
-    );
-  }, [profiles, query]);
+  // First page (resets whenever the debounced search changes).
+  useEffect(() => {
+    let active = true;
+    const requestId = ++requestIdRef.current;
+    const q = debouncedQuery;
+    searchDiscoverableProfiles({ query: q, limit: DISCOVER_PAGE_SIZE })
+      .then((page) => {
+        if (!active || requestId !== requestIdRef.current) return;
+        setProfiles(page.rows);
+        setOffset(page.rows.length);
+        setHasMore(page.hasMore);
+        setFailed(false);
+        setMoreFailed(false);
+      })
+      .catch((err: unknown) => {
+        if (!active || requestId !== requestIdRef.current) return;
+        setFailed(true);
+        toast(err instanceof DbError ? err.message : 'Could not load discovery.');
+      })
+      .finally(() => {
+        if (active && requestId === requestIdRef.current) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [debouncedQuery, retryKey, toast]);
+
+  const loadMore = () => {
+    if (loadingMoreRef.current || !hasMoreRef.current) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    setMoreFailed(false);
+    searchDiscoverableProfiles({
+      query: queryRef.current,
+      limit: DISCOVER_PAGE_SIZE,
+      offset: offsetRef.current,
+    })
+      .then((page) => {
+        setProfiles((prev) => {
+          const seen = new Set(prev.map((p) => p.user_id));
+          return [...prev, ...page.rows.filter((r) => !seen.has(r.user_id))];
+        });
+        setOffset((o) => o + page.rows.length);
+        setHasMore(page.hasMore);
+      })
+      .catch((err: unknown) => {
+        setMoreFailed(true);
+        toast(err instanceof DbError ? err.message : 'Could not load more results.');
+      })
+      .finally(() => {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      });
+  };
+
+  const retryFirstPage = () => {
+    setFailed(false);
+    setLoading(true);
+    setRetryKey((k) => k + 1);
+  };
+
+  const results = profiles;
 
   const connect = async (profile: Profile) => {
     setSending(profile.user_id);
@@ -134,15 +211,27 @@ export default function Discover() {
         <div className="card card-pad">
           <p className="discover-empty">Searching people who opted in…</p>
         </div>
+      ) : failed && results.length === 0 ? (
+        <div className="card card-pad discover-error">
+          <p className="discover-empty">Could not load discovery. Check your connection.</p>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={retryFirstPage}
+          >
+            Retry
+          </button>
+        </div>
       ) : results.length === 0 ? (
         <div className="card card-pad">
           <p className="discover-empty">
-            {profiles.length === 0
-              ? 'Nobody has opted into discovery yet. Check back soon — or invite an old friend.'
-              : 'No matches for that search. Try a different name or place.'}
+            {debouncedQuery.trim()
+              ? 'No matches for that search. Try a different name or place.'
+              : 'Nobody has opted into discovery yet. Check back soon — or invite an old friend.'}
           </p>
         </div>
       ) : (
+        <>
         <ul className="discover-list">
           {results.map((p) => {
             const pending = requested.has(p.user_id);
@@ -197,6 +286,33 @@ export default function Discover() {
             );
           })}
         </ul>
+        {(hasMore || moreFailed) && (
+          <div className="discover-more">
+            {moreFailed ? (
+              <>
+                <p className="discover-empty">Could not load more results.</p>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={loadMore}
+                >
+                  Retry
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={loadMore}
+                disabled={loadingMore}
+                aria-busy={loadingMore}
+              >
+                {loadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            )}
+          </div>
+        )}
+      </>
       )}
 
       <p className="discover-foot">

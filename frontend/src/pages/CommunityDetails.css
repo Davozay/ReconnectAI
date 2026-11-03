@@ -1,0 +1,110 @@
+.community-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.community-details-back {
+  align-self: flex-start;
+}
+.community-details-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.community-details-art {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: block;
+}
+.community-details-art .memory-art {
+  height: 100%;
+  aspect-ratio: auto;
+}
+.community-details-art .memory-art-label {
+  display: none;
+}
+.community-details-id {
+  flex: 1;
+  min-width: 0;
+}
+.community-details-id h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+.community-details-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.community-details-desc {
+  margin: 0.5rem 0 0;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}
+.community-details-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.02rem;
+}
+.community-details-empty {
+  margin: 0 0 0.75rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+.community-details-empty:last-child {
+  margin-bottom: 0;
+}
+.community-details-members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.community-details-members li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.community-details-memories {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.community-details-memories li + li {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 1rem;
+}
+.community-details-memory-head {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.community-details-memory-title {
+  margin: 0.25rem 0 0;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+.community-details-memory-body {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+@media (max-width: 560px) {
+  .community-details-head {
+    flex-wrap: wrap;
+  }
+  .community-details-head .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

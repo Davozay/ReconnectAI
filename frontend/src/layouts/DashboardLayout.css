@@ -208,6 +208,23 @@
   font-size: 0.78rem;
   color: var(--text-faint);
 }
+.rail-row-link {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.87rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rail-row-link:hover {
+  text-decoration: underline;
+}
+.rail-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
 .rail-trend {
   display: flex;
   flex-direction: column;
@@ -306,7 +323,14 @@
   }
   .dash-center {
     max-width: 100%;
-    padding-block: 0 6.5rem;
+    padding-block: 0 1rem;
+  }
+  .dash-rail {
+    display: flex;
+    position: static;
+    height: auto;
+    overflow-y: visible;
+    padding: 0 0.9rem 7rem;
   }
   .dash-header {
     display: none;
