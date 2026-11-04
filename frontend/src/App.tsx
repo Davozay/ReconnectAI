@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 import SplashScreen from './components/SplashScreen';
@@ -69,12 +69,55 @@ function ModeratorOnly({ children }: { children: ReactNode }) {
   return children;
 }
 
+/* Page-behind-the-splash readiness: fonts + initial resources settled, so
+   the reveal never lands on shifting text or half-loaded chrome. Capped so
+   a hung resource can't trap the splash (route data still streams in
+   behind skeletons as before). */
+function usePageSettled(): boolean {
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        setSettled(true);
+      }
+    };
+    const cap = window.setTimeout(finish, 6000);
+    const fonts =
+      'fonts' in document && document.fonts?.ready
+        ? document.fonts.ready.catch(() => undefined)
+        : Promise.resolve();
+    const loaded =
+      document.readyState === 'complete'
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            window.addEventListener('load', () => resolve(), { once: true });
+          });
+    void Promise.all([fonts, loaded]).then(() => {
+      window.clearTimeout(cap);
+      finish();
+    });
+    return () => {
+      done = true;
+      window.clearTimeout(cap);
+    };
+  }, []);
+  return settled;
+}
+
 export default function App() {
   const { loading } = useAuth();
+  const pageSettled = usePageSettled();
   const [splashOn, setSplashOn] = useState(true);
   return (
     <>
-      {splashOn && <SplashScreen ready={!loading} onExited={() => setSplashOn(false)} />}
+      {splashOn && (
+        <SplashScreen
+          ready={!loading && pageSettled}
+          onExited={() => setSplashOn(false)}
+        />
+      )}
       <Routes>
       <Route element={<MarketingLayout />}>
         <Route index element={<Landing />} />

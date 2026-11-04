@@ -16,7 +16,7 @@ import MemoryArt from './MemoryArt';
 import MediaLightbox from './MediaLightbox';
 import MemoryPhotos from './MemoryPhotos';
 import { useToast } from '../context/useToast';
-import type { FeedPost } from '../data/mock';
+import type { FeedPost } from '../data/content';
 import './PostCard.css';
 
 export default function PostCard({
@@ -34,7 +34,7 @@ export default function PostCard({
   like?: { count: number; liked: boolean; onToggle: () => void };
   /** Real save state; when absent, saves stay local-only. */
   save?: { saved: boolean; onToggle: () => void };
-  /** Real comment count; falls back to the bundled mock comments. */
+  /** Real comment count; falls back to the post's bundled comments. */
   commentCount?: number;
   /** Live thread wiring; when absent, comments stay local-only. */
   thread?: { memoryAuthorId: string; myId: string };

@@ -1,7 +1,7 @@
 """Shield data stores (in-memory reference implementation).
 
 Holds profiles, reconnection requests, blocks, reports, messages, and photo
-metadata for the hackathon demo. Every accessor is a small function so the
+metadata for local development. Every accessor is a small function so the
 Supabase/Postgres implementation can replace this module without touching
 routes. Resets between tests via :func:`reset_all`.
 """

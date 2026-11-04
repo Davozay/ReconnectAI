@@ -10,7 +10,6 @@ import {
   Users,
 } from 'lucide-react';
 import Reveal from '../components/Reveal';
-import SimBadge from '../components/SimBadge';
 import './Landing.css';
 
 const TICKER = [
@@ -203,23 +202,22 @@ export default function Landing() {
                   Open the Memory Detective
                   <ArrowRight size={17} aria-hidden="true" />
                 </Link>
-                <SimBadge />
               </div>
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="detective-mock" aria-hidden="true">
-              <div className="mock-head">
-                <span className="mock-dot" />
-                <span className="mock-dot" />
-                <span className="mock-dot" />
-                <span className="mock-title">sports-day-1998.jpg</span>
+            <div className="detective-preview" aria-hidden="true">
+              <div className="preview-head">
+                <span className="preview-dot" />
+                <span className="preview-dot" />
+                <span className="preview-dot" />
+                <span className="preview-title">sports-day-1998.jpg</span>
               </div>
-              <div className="mock-photo">
+              <div className="preview-photo">
                 <Camera size={34} strokeWidth={1.25} />
                 <span>Your photo stays private</span>
               </div>
-              <ul className="mock-clues">
+              <ul className="preview-clues">
                 <li>
                   <span>School banner</span>
                   <strong>“Hills Christian Academy, Maitama”</strong>

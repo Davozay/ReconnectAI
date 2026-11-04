@@ -192,7 +192,7 @@ create policy "shield_photos_owner_delete" on storage.objects
 
 -- ---------------------------------------------------------------- memories
 -- Community memory posts: authors own their rows; only posts explicitly
--- shared are readable by others. (Extends the existing demo fixtures.)
+-- shared are readable by others.
 create table if not exists public.memories (
   id uuid primary key default gen_random_uuid(),
   author_id uuid not null references auth.users (id) on delete cascade,

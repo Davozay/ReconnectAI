@@ -48,7 +48,6 @@ class AnalyzeRequest(BaseModel):
 
 
 class AnalyzeResponse(BaseModel):
-    simulated: bool = False
     summary: str
     clues: list[Clue]
     extraction: MemoryExtraction
@@ -114,7 +113,6 @@ class DiscoverItem(BaseModel):
 
 
 class DiscoverResponse(BaseModel):
-    simulated: bool = True
     items: list[DiscoverItem]
     note: str
 
@@ -213,7 +211,6 @@ ANSWER_JSON_SCHEMA: dict = {
 
 
 class MatchesResponse(BaseModel):
-    simulated: bool = False
     matches: list[MatchCandidate]
     note: str
 
@@ -230,7 +227,7 @@ class PhotoExtraction(BaseModel):
     extraction: MemoryExtraction = Field(default_factory=MemoryExtraction)
 
 
-AnalysisSource = Literal["vision_model", "ocr", "user_input", "demonstration_fixture"]
+AnalysisSource = Literal["vision_model", "ocr", "user_input"]
 
 
 class PhotoAnalysis(BaseModel):
@@ -245,7 +242,6 @@ class PhotoAnalysis(BaseModel):
 
 
 class PhotoResponse(BaseModel):
-    simulated: bool = False
     summary: str
     clues: list[Clue]
     extraction: MemoryExtraction

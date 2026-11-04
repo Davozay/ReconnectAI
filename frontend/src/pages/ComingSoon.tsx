@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Construction } from 'lucide-react';
-import SimBadge from '../components/SimBadge';
 import './ComingSoon.css';
 
 export default function ComingSoon({
@@ -16,7 +15,7 @@ export default function ComingSoon({
       <h1>{title}</h1>
       <p>{body}</p>
       <div className="soon-row">
-        <SimBadge label="Next milestone" />
+        <span className="pill pill-neutral">Next milestone</span>
         <Link to="/app/detective" className="btn btn-primary btn-sm">
           Try the Memory Detective
           <ArrowRight size={15} aria-hidden="true" />

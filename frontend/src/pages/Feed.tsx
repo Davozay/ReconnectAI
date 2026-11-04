@@ -35,8 +35,8 @@ import { cursorOf, mergeUniqueById } from '../lib/paging';
 import type { PageCursor } from '../lib/paging';
 import { StorageError, uploadMemoryPhoto } from '../lib/storage';
 import { memoryHasTag, normalizeTag } from '../lib/trending';
-import { MEMORY_PROMPTS } from '../data/mock';
-import type { FeedPost } from '../data/mock';
+import { MEMORY_PROMPTS } from '../data/content';
+import type { FeedPost } from '../data/content';
 import './Feed.css';
 
 const POST_COLORS = ['#6255e8', '#e85a4f', '#16a34a', '#0ea5e9', '#d946ef'];

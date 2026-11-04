@@ -1,8 +1,9 @@
 """AI configuration tests: key loading, status flag, and error mapping.
 
-Regression coverage for the simulated-mode bug: backend/.env must load no
-matter which directory the server starts from, since the frontend switches
-to demo mode whenever /status reports configured=false. No live network.
+Regression coverage for the missing-key bug: backend/.env must load no
+matter which directory the server starts from, since the frontend reports
+the AI service as unavailable whenever /status reports configured=false.
+No live network.
 """
 
 import os
@@ -51,7 +52,7 @@ class StatusConfigTests(unittest.TestCase):
 
     def test_env_file_loads_from_repo_root_working_directory(self):
         """Starting the server from the repo root must still pick up
-        backend/.env (bare load_dotenv() missed it -> forced demo mode)."""
+        backend/.env (bare load_dotenv() missed it -> reported unconfigured)."""
         env_path = BACKEND_DIR / ".env"
         sentinel = f"RECONNECT_CWD_TEST_{uuid.uuid4().hex[:8]}"
         original = env_path.read_text()

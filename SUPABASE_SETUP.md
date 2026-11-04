@@ -129,7 +129,7 @@ Start the API with `uvicorn main:app --reload` from `backend/`.
 8. **Privacy**: in Storage, both buckets stay private; profile/memory photos
    load through short-lived signed URLs only. With a second account, confirm
    you cannot see the first account's private rows (RLS returns nothing).
-9. **Detective still works** signed out (public demo + live AI unchanged).
+9. **Detective still works** signed out (live AI unchanged).
 
 ## 6. Automated checks
 

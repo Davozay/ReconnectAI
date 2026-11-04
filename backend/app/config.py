@@ -13,7 +13,7 @@ try:
     # Absolute path: backend/.env loads no matter which directory the
     # server is started from (repo root vs backend/). A bare load_dotenv()
     # only searches the current working directory upward, so starting from
-    # the repo root silently skipped the key and forced demo mode.
+    # the repo root silently skipped the key and reported unconfigured.
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 except ImportError:  # pragma: no cover - dotenv is optional
     pass
@@ -100,7 +100,7 @@ def shield_admin_ids() -> frozenset:
 
 
 def ai_configured() -> bool:
-    """True only when a real API key is present. No key => demo/unconfigured.
+    """True only when a real API key is present. No key => unconfigured.
 
     Reads the live environment so key changes never need a restart.
     """

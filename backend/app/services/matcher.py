@@ -10,15 +10,45 @@ nothing here is an identity-verification probability.
 import re
 import string
 from difflib import SequenceMatcher
+from typing import TypedDict
 
-from app.data.demo_memories import DEMO_MEMORIES
-from app.data.demo_profiles import DEMO_PROFILES, DemoProfile
 from app.schemas.detective import (
     ConfirmedProfile,
     DiscoverItem,
     MatchCandidate,
     MatchHighlights,
 )
+
+
+class CandidateSchool(TypedDict):
+    name: str
+    years_from: int
+    years_to: int
+
+
+class CandidateProfile(TypedDict):
+    """One opted-in profile to rank (Supabase rows map to this shape)."""
+
+    profile_id: str
+    display_name: str
+    detail: str
+    schools: list[CandidateSchool]
+    locations: list[str]
+    nicknames: list[str]
+    memories: list[str]
+
+
+class CommunityMemory(TypedDict):
+    """One shared community memory to rank (Supabase rows map to this shape)."""
+
+    id: str
+    title: str
+    author: str
+    school: str | None
+    place: str | None
+    year: str | None
+    seed: str
+    keywords: list[str]
 
 _STOPWORDS = frozenset(
     {
@@ -73,7 +103,7 @@ def keywords(text: str) -> set[str]:
 
 
 def _score_profile(
-    seeker: ConfirmedProfile, candidate: DemoProfile
+    seeker: ConfirmedProfile, candidate: CandidateProfile
 ) -> tuple[int, list[str], MatchHighlights]:
     score = 0
     reasons: list[str] = []
@@ -171,10 +201,12 @@ def strength_for(score: int) -> str:
 
 
 def find_matches(
-    seeker: ConfirmedProfile, limit: int = 5
+    seeker: ConfirmedProfile,
+    candidates: list[CandidateProfile],
+    limit: int = 5,
 ) -> list[MatchCandidate]:
     ranked: list[tuple[int, MatchCandidate]] = []
-    for candidate in DEMO_PROFILES:
+    for candidate in candidates:
         score, reasons, highlights = _score_profile(seeker, candidate)
         if score <= 0 or not reasons:
             continue
@@ -197,13 +229,13 @@ def find_matches(
 
 def find_memories(
     seeker: ConfirmedProfile,
+    memories: list[CommunityMemory],
     limit: int = 6,
     scene_keywords: list[str] | None = None,
 ) -> list[DiscoverItem]:
     """Community memories ranked by contextual overlap.
 
-    Context only (school, place, era, keywords) — never faces. Demo
-    fixtures until real community sharing lands; callers must label them.
+    Context only (school, place, era, keywords) — never faces.
     """
     seeker_schools = {normalize(s) for s in seeker.schools if s.strip()}
     seeker_places = {normalize(p) for p in seeker.locations if p.strip()}
@@ -219,7 +251,7 @@ def find_memories(
         seeker_words |= keywords(nick)
 
     ranked: list[tuple[int, DiscoverItem]] = []
-    for memory in DEMO_MEMORIES:
+    for memory in memories:
         score = 0
         reasons: list[str] = []
         if memory["school"] and normalize(memory["school"]) in seeker_schools:

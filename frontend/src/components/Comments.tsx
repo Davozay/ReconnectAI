@@ -12,7 +12,7 @@ import {
   subscribeToMemoryComments,
 } from '../lib/db';
 import type { MemoryComment } from '../lib/db';
-import type { PostComment } from '../data/mock';
+import type { PostComment } from '../data/content';
 import './Comments.css';
 
 /** Live thread wiring. When absent, comments stay local-only. */

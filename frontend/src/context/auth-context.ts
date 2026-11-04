@@ -22,5 +22,3 @@ export interface AuthValue {
 }
 
 export const AuthContext = createContext<AuthValue | null>(null);
-
-export const STORAGE_KEY = 'reconnect:user';

@@ -36,11 +36,7 @@ from app.schemas.detective import (
     StatusResponse,
 )
 from app.services.images import PhotoValidationError, read_validated_photo
-from app.services.matcher import (
-    find_memories,
-    normalize,
-    parse_year_range,
-)
+from app.services.matcher import normalize, parse_year_range
 from app.services.rescue import next_question
 from app.services.meta_client import (
     NO_FACE_IDENTITY,
@@ -124,7 +120,6 @@ def status() -> StatusResponse:
 def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
     if not payload.memory.strip() and not payload.nickname.strip():
         return AnalyzeResponse(
-            simulated=False,
             summary="Add a memory or a nickname to analyze.",
             clues=[],
             extraction=MemoryExtraction(),
@@ -138,7 +133,6 @@ def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
         raise AIBadResponseError() from exc
     summary = extraction.summary or "Extracted the details below from your note."
     return AnalyzeResponse(
-        simulated=False,
         summary=summary,
         clues=_clues_from(extraction),
         extraction=extraction,
@@ -215,7 +209,6 @@ async def analyze_photo(
         )
     width, height = dims if dims else (None, None)
     return PhotoResponse(
-        simulated=False,
         summary=extraction.summary or "Read the details below from your photo.",
         clues=clues,
         extraction=extraction,
@@ -290,7 +283,6 @@ def matches(payload: ConfirmedProfile) -> MatchesResponse:
     """
     _ = payload
     return MatchesResponse(
-        simulated=False,
         matches=[],
         note=(
             "Connection discovery is unavailable until Supabase is "
@@ -302,14 +294,20 @@ def matches(payload: ConfirmedProfile) -> MatchesResponse:
 
 @router.post("/discover", response_model=DiscoverResponse)
 def discover(payload: ConfirmedProfile) -> DiscoverResponse:
-    """Community memories ranked by contextual overlap (demo fixtures)."""
+    """Community memories ranked by contextual overlap.
+
+    Real discovery searches shared Supabase memories. That integration
+    has not landed yet, so this route honestly returns no memories rather
+    than fictional ones. The ranking engine (``find_memories``) stays
+    unit-tested and will power this route once Supabase is wired in.
+    """
+    _ = payload
     return DiscoverResponse(
-        simulated=True,
-        items=find_memories(payload),
+        items=[],
         note=(
-            "Demonstration fixtures: fictional community memories matched by "
-            "school, place, era, and themes — never by faces. Real community "
-            "sharing lands with Supabase integration."
+            "Community discovery is unavailable until Supabase is "
+            "connected — there are no real shared memories to search "
+            "yet, so none are shown instead of invented ones."
         ),
     )
 
@@ -416,15 +414,17 @@ def rescue_answer(payload: RescueAnswerRequest) -> RescueAnswerResponse:
 
 @router.post("/rescue/discover", response_model=DiscoverResponse)
 def rescue_discover(payload: RescueDiscoverRequest) -> DiscoverResponse:
-    """Scene-aware community memory search (non-biometric, demo fixtures)."""
-    scene_keywords = list(payload.scene_objects)
-    if payload.scene_setting.strip():
-        scene_keywords.append(payload.scene_setting)
+    """Scene-aware community memory search (never by faces).
+
+    Honestly empty until the Supabase community-sharing integration lands;
+    no fictional memories are ever returned.
+    """
+    _ = payload
     return DiscoverResponse(
-        simulated=True,
-        items=find_memories(payload.profile, scene_keywords=scene_keywords),
+        items=[],
         note=(
-            "Demonstration fixtures matched by context plus scene and object "
-            "similarities. No biometric matching — never by faces."
+            "Community discovery is unavailable until Supabase is "
+            "connected — there are no real shared memories to search "
+            "yet, so none are shown instead of invented ones."
         ),
     )

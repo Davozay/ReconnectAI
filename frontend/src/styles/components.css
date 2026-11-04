@@ -187,28 +187,6 @@
   padding: 0.5rem 1.05rem;
 }
 
-/* Simulated-feature badge */
-.sim-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.22rem 0.6rem;
-  border-radius: var(--r-pill);
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--amber-soft),
-    var(--amber-soft) 6px,
-    var(--amber-line) 6px,
-    var(--amber-line) 12px
-  );
-  color: var(--amber-deep);
-  border: 1px dashed var(--amber-line);
-}
-
 /* Avatar (initials) */
 .avatar {
   display: inline-flex;

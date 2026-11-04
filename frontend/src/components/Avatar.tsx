@@ -1,4 +1,4 @@
-import { initials } from '../data/mock';
+import { initials } from '../data/content';
 import './Avatar.css';
 
 interface AvatarProps {

@@ -7,10 +7,16 @@
   justify-content: center;
   background: #070a14;
   overflow: hidden;
-  /* Invisible 0.9s timer: guarantees a minimum display so fast restores
-     read as a brand flash, not a flicker. Excluded from reduced-motion. */
-  animation: splash-min-time 0.9s linear;
+  /* Invisible 3.2s timer: holds the splash until the full entrance
+     sequence (rings → pulse → wordmark → AI glow, ending at 3.2s) has
+     played, so fast boots never cut it off mid-animation. */
+  animation: splash-min-time 3.2s linear;
   transition: opacity 0.45s ease;
+}
+/* Light theme follows the user's saved appearance (html[data-theme] is
+   set pre-paint, so this matches from the very first frame). */
+[data-theme='light'] .splash {
+  background: #f4f2fc;
 }
 .splash.is-leaving {
   opacity: 0;
@@ -50,6 +56,12 @@
   right: -28vmax;
   background: radial-gradient(closest-side, rgba(255, 118, 107, 0.36), transparent 70%);
 }
+[data-theme='light'] .splash-glow.is-left {
+  background: radial-gradient(closest-side, rgba(98, 85, 232, 0.22), transparent 70%);
+}
+[data-theme='light'] .splash-glow.is-right {
+  background: radial-gradient(closest-side, rgba(232, 90, 79, 0.2), transparent 70%);
+}
 @keyframes splash-glow-in {
   from {
     opacity: 0;
@@ -83,6 +95,9 @@
   display: block;
   filter: drop-shadow(0 6px 22px rgba(80, 70, 200, 0.35));
   overflow: visible;
+}
+[data-theme='light'] .splash-rings {
+  filter: drop-shadow(0 8px 20px rgba(80, 70, 200, 0.25));
 }
 .splash-ring-a,
 .splash-ring-b {
@@ -146,6 +161,9 @@
   white-space: nowrap;
   animation: splash-word-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 1.8s backwards;
 }
+[data-theme='light'] .splash-word {
+  color: #17171e;
+}
 @keyframes splash-word-in {
   from {
     opacity: 0;
@@ -163,6 +181,31 @@
     0 0 12px rgba(255, 118, 107, 0.55),
     0 0 30px rgba(196, 100, 255, 0.35);
   animation: splash-ai-in 0.6s ease-out 2.6s backwards;
+}
+[data-theme='light'] .splash-word em {
+  color: #e85a4f;
+  text-shadow:
+    0 0 10px rgba(232, 90, 79, 0.35),
+    0 0 26px rgba(98, 85, 232, 0.25);
+  animation-name: splash-ai-in-light;
+}
+@keyframes splash-ai-in-light {
+  0% {
+    opacity: 0;
+    text-shadow: none;
+  }
+  55% {
+    opacity: 1;
+    text-shadow:
+      0 0 14px rgba(232, 90, 79, 0.55),
+      0 0 36px rgba(98, 85, 232, 0.4);
+  }
+  100% {
+    opacity: 1;
+    text-shadow:
+      0 0 10px rgba(232, 90, 79, 0.35),
+      0 0 26px rgba(98, 85, 232, 0.25);
+  }
 }
 @keyframes splash-ai-in {
   0% {
@@ -185,6 +228,10 @@
 
 /* ---------- reduced motion: static final logo, no flashes ---------- */
 @media (prefers-reduced-motion: reduce) {
+  /* No sequence to play, so only a brief brand hold instead of 3.2s. */
+  .splash {
+    animation-duration: 0.5s;
+  }
   .splash-glow {
     animation: none;
     opacity: 0.45;

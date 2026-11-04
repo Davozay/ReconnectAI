@@ -2,9 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /* Supabase browser client (publishable key only — RLS protects the data).
-   Missing config must never crash the app at import time (the Memory
-   Detective demo works without Supabase), so the client is null when
-   unconfigured and data layers surface a clear error instead. */
+   Missing config must never crash the app at import time (parts of the app
+   work without Supabase), so the client is null when unconfigured and data
+   layers surface a clear error instead. */
 
 const url =
   import.meta.env.VITE_SUPABASE_URL ??

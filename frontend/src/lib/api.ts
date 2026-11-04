@@ -1,8 +1,8 @@
 /* ReConnect AI API client.
    Live endpoints talk to FastAPI (which calls the Meta Model API
-   server-side — keys never reach the browser). When the backend is
-   unreachable or AI is unconfigured, the UI may explicitly fall back to
-   clearly-labeled local demo responses. Nothing here is ever "live". */
+   server-side — keys never reach the browser). Every call below hits the
+   real backend and throws ApiError on failure; there are no local
+   fallbacks or invented responses. */
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
@@ -68,11 +68,7 @@ export interface Clue {
   source: string;
 }
 
-export type AnalysisSource =
-  | 'vision_model'
-  | 'ocr'
-  | 'user_input'
-  | 'demonstration_fixture';
+export type AnalysisSource = 'vision_model' | 'ocr' | 'user_input';
 
 export interface PhotoAnalysis {
   visible_description: string;
@@ -84,7 +80,6 @@ export interface PhotoAnalysis {
 }
 
 export interface AnalyzeResponse {
-  simulated: boolean;
   summary: string;
   clues: Clue[];
   extraction?: MemoryExtraction;
@@ -152,13 +147,11 @@ export interface DiscoverItem {
 }
 
 export interface DiscoverResponse {
-  simulated: boolean;
   items: DiscoverItem[];
   note: string;
 }
 
 export interface MatchesResponse {
-  simulated: boolean;
   matches: ServerMatch[];
   note: string;
 }
@@ -324,28 +317,4 @@ export async function checkHealth(): Promise<boolean> {
   }
 }
 
-/* ---------- clearly-labeled local demo fallback ----------
-   Used ONLY when the backend is unreachable or AI is unconfigured. It makes
-   zero visual claims about the user's photo: no invented schools, dates,
-   places, or descriptions. The fixture exists so the interface stays
-   explorable, and analysis_source says so truthfully. */
 
-export const DEMO_ANALYSIS: PhotoAnalysis = {
-  visible_description: '',
-  extracted_text: '',
-  possible_context: null,
-  uncertain_observations: [],
-  user_confirmation_required: true,
-  analysis_source: 'demonstration_fixture',
-};
-
-export async function analyzeMemory(): Promise<AnalyzeResponse> {
-  await new Promise((r) => setTimeout(r, 1200));
-  return {
-    simulated: true,
-    summary:
-      'Demo mode — nothing was analyzed. Start the backend with a Meta Model API key to read this photo and memory for real.',
-    clues: [],
-    analysis: { ...DEMO_ANALYSIS },
-  };
-}

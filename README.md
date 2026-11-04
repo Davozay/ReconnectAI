@@ -115,7 +115,7 @@ progress is labeled in [Future Improvements](#future-improvements).
 
 | Feature | How it works |
 |---|---|
-| **Memory Detective (AI photo analysis)** | Upload a childhood photo with optional typed context. The FastAPI backend validates the file, sends it to the Muse Spark vision model, and returns structured clues (schools, nicknames, locations, years, events, visible text) plus a summary. Users confirm or edit each clue before saving the memory. Works signed-in or as a public demo. |
+| **Memory Detective (AI photo analysis)** | Upload a childhood photo with optional typed context. The FastAPI backend validates the file, sends it to the Muse Spark vision model, and returns structured clues (schools, nicknames, locations, years, events, visible text) plus a summary. Users confirm or edit each clue before saving the memory. Works signed-in or signed out. |
 | **Memory Rescue** | When a photo yields too few clues, a deterministic question engine asks adaptive follow-ups (year → place → school → names → event → scene → details), skipping topics already covered. Each answer is converted into structured clues with AI assistance when configured, or taken directly when offline. |
 | **Shared memories feed** | Home feed of community-shared memories with cursor-based infinite scroll, likes, threaded comments, saves, hashtag filtering, and photo attachments. Private memories never leave the owner's account. |
 | **Trending memories** | Hashtags are extracted from shared memories and ranked over a rolling 7-day window, with a trending rail and per-tag filtered feeds. |
@@ -202,12 +202,11 @@ Create an account → Complete onboarding → Add a memory or photograph
 
 ### Limitations (honest scope)
 
-- AI features require a `META_MODEL_API_KEY`; without one the Detective runs
-  in a clearly labeled simulated/demo mode.
+- AI features require a `META_MODEL_API_KEY`; without one the Detective
+  shows a clear error instead of analyzing.
 - Live AI matching against the real member directory is the next milestone:
-  `/matches` currently returns an empty set rather than invented people, and
-  `/discover` ranks explicitly labeled fictional demo fixtures while real
-  discovery runs on the Supabase directory.
+  `/matches` and `/discover` currently return empty sets rather than
+  invented people or memories.
 - Photo analysis quality depends on image clarity and legible detail; the
   model reads what is visible, it does not guess identities.
 
@@ -288,7 +287,7 @@ leaves the server.
 
 In the meantime, the fastest demo is the live app itself:
 **[thereconnect-ai.vercel.app](https://thereconnect-ai.vercel.app/)** — the
-Memory Detective runs a public demo without signing in.
+Memory Detective works without signing in.
 
 ## Getting Started
 
@@ -299,7 +298,7 @@ Memory Detective runs a public demo without signing in.
 - A free **Supabase** project (database, auth, storage, realtime).
 - *(Optional, for live AI)* A **Meta Model API key** from the
   [Meta Developer Console](https://ai.developer.meta.com). Without it, the
-  Detective runs in labeled demo mode.
+  Detective reports the AI service as unavailable.
 
 ### 1. Clone the repository
 
@@ -439,11 +438,11 @@ biometric processing — none exist in this project.
 ## Challenges and Engineering Decisions
 
 - **Judging without keys** — hackathon reviewers may not have a Meta API key,
-  so the Detective degrades to a clearly labeled simulated mode instead of
-  breaking. Every demo fixture is explicitly tagged as fictional.
+  so the Detective shows a clear setup error instead of breaking or faking
+  results. Nothing is ever invented.
 - **Honest empty states over fake people** — until live AI matching against
-  the real directory lands, `/matches` returns zero matches rather than
-  inventing candidates. Trust beats a flashy demo.
+  the real directory lands, `/matches` and `/discover` return zero results
+  rather than inventing candidates. Trust beats a flashy demo.
 - **Security in the database, not the client** — RLS policies and RPCs (e.g.
   conversation creation requires an accepted reconnection) mean a compromised
   frontend cannot leak private rows.
@@ -461,7 +460,7 @@ biometric processing — none exist in this project.
 Planned — **not yet implemented**:
 
 - Live AI matching of confirmed clues against the real member directory
-  (replacing the labeled demo fixtures in `/discover`).
+  (powering `/matches` and `/discover`, which are honestly empty today).
 - Persistent Shield store (currently in-memory; resets on backend restart).
 - Hosted backend deployment configuration (Docker / managed Python host).
 - Push notifications and email digests for reconnection activity.
@@ -507,3 +506,7 @@ final submission.*
 [Repository](https://github.com/Davozay/ReconnectAI)
 
 </div>
+
+
+
+

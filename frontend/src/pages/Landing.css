@@ -250,7 +250,7 @@
   flex-wrap: wrap;
 }
 
-.detective-mock {
+.detective-preview {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -258,26 +258,26 @@
   overflow: hidden;
   transform: rotate(1.5deg);
 }
-.mock-head {
+.preview-head {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.7rem 1rem;
   border-bottom: 1px solid var(--line-soft);
 }
-.mock-dot {
+.preview-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: var(--line);
 }
-.mock-title {
+.preview-title {
   margin-left: 0.5rem;
   font-size: 0.8rem;
   color: var(--text-faint);
   font-weight: 500;
 }
-.mock-photo {
+.preview-photo {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -291,7 +291,7 @@
   font-size: 0.85rem;
   font-weight: 500;
 }
-.mock-clues {
+.preview-clues {
   list-style: none;
   margin: 0;
   padding: 1rem;
@@ -299,7 +299,7 @@
   flex-direction: column;
   gap: 0.55rem;
 }
-.mock-clues li {
+.preview-clues li {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -310,10 +310,10 @@
   padding: 0.6rem 0.85rem;
   font-size: 0.87rem;
 }
-.mock-clues span {
+.preview-clues span {
   color: var(--text-faint);
 }
-.mock-clues strong {
+.preview-clues strong {
   font-weight: 600;
   text-align: right;
 }
@@ -402,7 +402,7 @@
     grid-template-columns: 1fr;
     gap: 2.5rem;
   }
-  .detective-mock {
+  .detective-preview {
     transform: none;
     max-width: 520px;
   }

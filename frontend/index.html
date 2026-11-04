@@ -33,9 +33,13 @@
     />
     <title>ReConnect AI — Rediscover people. Relive memories.</title>
     <style>
-      /* Pre-paint backdrop matches the boot splash until styles load. */
+      /* Pre-paint backdrop matches the boot splash until styles load.
+         Theme-aware: the script above already set data-theme. */
       html {
         background: #070a14;
+      }
+      html[data-theme='light'] {
+        background: #f4f2fc;
       }
     </style>
   </head>

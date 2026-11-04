@@ -1,8 +1,9 @@
 """Maintained backend tests for the AI Memory Detective.
 
 No live network calls: tests patch the Meta client boundary and assert it is
-invoked with the right model, prompts, and payloads. Fictional profiles stand
-in for consenting users until Supabase matching lands.
+invoked with the right model, prompts, and payloads. Matching-engine tests
+use inline candidate inputs (the shape Supabase rows will map to); the API
+never serves invented people or memories.
 """
 
 import os
@@ -13,7 +14,12 @@ from fastapi.testclient import TestClient
 
 import main
 from app.schemas.detective import ConfirmedProfile
-from app.services.matcher import find_matches
+from app.services.matcher import (
+    CandidateProfile,
+    CommunityMemory,
+    find_matches,
+    find_memories,
+)
 from app.services.meta_client import AITimeoutError
 
 client = TestClient(main.app)
@@ -84,7 +90,7 @@ class AnalyzeTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["clues"], [])
 
-    def test_unconfigured_returns_503_without_mock_results(self):
+    def test_unconfigured_returns_503_without_results(self):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("META_MODEL_API_KEY", None)
             response = client.post(
@@ -114,7 +120,7 @@ class AnalyzeTests(unittest.TestCase):
         self.assertEqual(schema["name"], "memory_extraction")
 
         body = response.json()
-        self.assertFalse(body["simulated"])
+        self.assertNotIn("simulated", body)
         extraction = body["extraction"]
         self.assertEqual(extraction["schools"][0]["value"], "Maplewood Elementary")
         self.assertEqual(extraction["schools"][0]["origin"], "stated")
@@ -244,7 +250,7 @@ class PhotoTests(unittest.TestCase):
         self.assertIn("sports day", args[3])
 
         body = response.json()
-        self.assertFalse(body["simulated"])
+        self.assertNotIn("simulated", body)
         self.assertEqual(body["photo"]["width"], 4)
         self.assertEqual(body["photo"]["height"], 3)
         self.assertEqual(body["visible_text"], "MAPLEWOOD ELEMENTARY 1998")
@@ -284,6 +290,49 @@ class MatchTests(unittest.TestCase):
         "events": ["sports day trophy"],
     }
 
+    # Engine-test inputs in the shape Supabase rows will map to. These are
+    # unit-test data only — the API never serves them.
+    CANDIDATES: list[CandidateProfile] = [
+        {
+            "profile_id": "test-jo",
+            "display_name": "J. Mensah",
+            "detail": "Maplewood Elementary · 1996–2001 · Riverside",
+            "schools": [
+                {
+                    "name": "Maplewood Elementary",
+                    "years_from": 1996,
+                    "years_to": 2001,
+                }
+            ],
+            "locations": ["Riverside"],
+            "nicknames": ["Jo", "Jo-Jo"],
+            "memories": [
+                "sports day trophy race",
+                "class banner painting",
+                "fourth grade classroom",
+            ],
+        },
+        {
+            "profile_id": "test-aw",
+            "display_name": "A. Whitfield",
+            "detail": "Maplewood Elementary · 1997–2002 · Riverside",
+            "schools": [
+                {
+                    "name": "Maplewood Elementary",
+                    "years_from": 1997,
+                    "years_to": 2002,
+                }
+            ],
+            "locations": ["Riverside"],
+            "nicknames": ["Allie"],
+            "memories": [
+                "story hour fridays",
+                "paper lanterns",
+                "reading corner",
+            ],
+        },
+    ]
+
     def test_matches_route_empty_until_supabase_lands(self):
         """The route never shows fictional people; discovery waits on
         real opted-in Supabase profiles."""
@@ -291,15 +340,15 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertEqual(body["matches"], [])
-        self.assertFalse(body["simulated"])
+        self.assertNotIn("simulated", body)
         self.assertIn("Supabase", body["note"])
         self.assertIn("unavailable", body["note"])
 
     def test_engine_strong_match_ranked_first_with_reasons(self):
-        ranked = find_matches(ConfirmedProfile(**self.SEEKER))
+        ranked = find_matches(ConfirmedProfile(**self.SEEKER), self.CANDIDATES)
         self.assertGreater(len(ranked), 0)
         top = ranked[0]
-        self.assertEqual(top.profile_id, "demo-jo")
+        self.assertEqual(top.profile_id, "test-jo")
         self.assertEqual(top.strength, "Strong overlap")
         reasons = " ".join(top.reasons)
         self.assertIn("Maplewood", reasons)
@@ -315,7 +364,8 @@ class MatchTests(unittest.TestCase):
                 years=["1996 – 2001"],
                 names_mentioned=[],
                 events=[],
-            )
+            ),
+            self.CANDIDATES,
         )
         reasons = " ".join(ranked[0].reasons)
         self.assertIn("overlapping years", reasons)
@@ -329,12 +379,15 @@ class MatchTests(unittest.TestCase):
                 years=["1980"],
                 names_mentioned=[],
                 events=["quantum knitting"],
-            )
+            ),
+            self.CANDIDATES,
         )
         self.assertEqual(ranked, [])
 
     def test_engine_matches_expose_no_scores_or_probabilities(self):
-        for match in find_matches(ConfirmedProfile(**self.SEEKER)):
+        for match in find_matches(
+            ConfirmedProfile(**self.SEEKER), self.CANDIDATES
+        ):
             dumped = match.model_dump()
             self.assertNotIn("score", dumped)
             self.assertNotIn("probability", dumped)
@@ -645,7 +698,8 @@ class AccuracyTests(unittest.TestCase):
                 years=["1998"],
                 names_mentioned=[],
                 events=["sports day trophy"],
-            )
+            ),
+            MatchTests.CANDIDATES,
         )
         highlights = ranked[0].highlights
         self.assertIn("Maplewood Elementary", highlights.schools)
@@ -666,48 +720,81 @@ class DiscoverTests(unittest.TestCase):
         "events": ["sports day trophy"],
     }
 
-    def test_discover_returns_ranked_labeled_fixtures(self):
+    # Engine-test inputs in the shape Supabase rows will map to. These are
+    # unit-test data only — the API never serves them.
+    MEMORIES: list[CommunityMemory] = [
+        {
+            "id": "mem-sports98",
+            "title": "Sports day finish line",
+            "author": "Maya R.",
+            "school": "Maplewood Elementary",
+            "place": "Riverside",
+            "year": "1998",
+            "seed": "sports-day",
+            "keywords": ["sports", "trophy", "race", "banner"],
+        },
+        {
+            "id": "mem-chess",
+            "title": "Chess club finals",
+            "author": "Leo K.",
+            "school": "Hillcrest Academy",
+            "place": "Lakeside",
+            "year": "2002",
+            "seed": "walk-home",
+            "keywords": ["chess", "club", "finals", "trophy"],
+        },
+    ]
+
+    def test_discover_route_empty_until_supabase_lands(self):
+        """The route never shows fictional memories; discovery waits on
+        real shared Supabase memories."""
         response = client.post("/api/detective/discover", json=self.SEEKER)
         self.assertEqual(response.status_code, 200)
         body = response.json()
-        self.assertTrue(body["simulated"])
-        self.assertIn("Demonstration fixtures", body["note"])
-        self.assertGreater(len(body["items"]), 0)
-        first = body["items"][0]
-        self.assertEqual(first["school"], "Maplewood Elementary")
-        self.assertGreaterEqual(len(first["reasons"]), 1)
+        self.assertEqual(body["items"], [])
+        self.assertNotIn("simulated", body)
+        self.assertIn("Supabase", body["note"])
+        self.assertIn("unavailable", body["note"])
 
-    def test_discover_filters_by_context(self):
-        response = client.post(
-            "/api/detective/discover",
-            json={
-                "schools": ["Hillcrest Academy"],
-                "nicknames": [],
-                "locations": [],
-                "years": [],
-                "names_mentioned": [],
-                "events": [],
-            },
+    def test_engine_ranks_memories_by_context(self):
+        ranked = find_memories(ConfirmedProfile(**self.SEEKER), self.MEMORIES)
+        self.assertGreater(len(ranked), 0)
+        first = ranked[0]
+        self.assertEqual(first.school, "Maplewood Elementary")
+        self.assertGreaterEqual(len(first.reasons), 1)
+
+    def test_engine_filters_memories_by_context(self):
+        ranked = find_memories(
+            ConfirmedProfile(
+                schools=["Hillcrest Academy"],
+                nicknames=[],
+                locations=[],
+                years=[],
+                names_mentioned=[],
+                events=[],
+            ),
+            self.MEMORIES,
         )
-        schools = {item["school"] for item in response.json()["items"]}
+        schools = {item.school for item in ranked}
         self.assertEqual(schools, {"Hillcrest Academy"})
 
-    def test_discover_empty_profile_returns_empty(self):
-        response = client.post(
-            "/api/detective/discover",
-            json={
-                "schools": [],
-                "nicknames": [],
-                "locations": [],
-                "years": [],
-                "names_mentioned": [],
-                "events": [],
-            },
+    def test_engine_empty_profile_returns_no_memories(self):
+        ranked = find_memories(
+            ConfirmedProfile(
+                schools=[],
+                nicknames=[],
+                locations=[],
+                years=[],
+                names_mentioned=[],
+                events=[],
+            ),
+            self.MEMORIES,
         )
-        self.assertEqual(response.json()["items"], [])
+        self.assertEqual(ranked, [])
 
-    def test_discover_items_carry_no_face_or_identity_data(self):
-        response = client.post("/api/detective/discover", json=self.SEEKER)
+    def test_engine_items_carry_no_face_or_identity_data(self):
+        ranked = find_memories(ConfirmedProfile(**self.SEEKER), self.MEMORIES)
+        self.assertGreater(len(ranked), 0)
         allowed = {
             "id",
             "title",
@@ -718,8 +805,8 @@ class DiscoverTests(unittest.TestCase):
             "seed",
             "reasons",
         }
-        for item in response.json()["items"]:
-            self.assertLessEqual(set(item.keys()), allowed)
+        for item in ranked:
+            self.assertLessEqual(set(item.model_dump().keys()), allowed)
 
     def test_rescue_starts_with_year_and_skips_covered(self):
         first = client.post(
@@ -827,7 +914,7 @@ class DiscoverTests(unittest.TestCase):
         self.assertEqual(items[2]["kind"], "clue")  # off-topic coerced
         self.assertEqual(items[2]["origin"], "inferred")  # not in answer
 
-    def test_rescue_discover_matches_scene_objects(self):
+    def test_rescue_discover_route_empty_until_supabase_lands(self):
         response = client.post(
             "/api/detective/rescue/discover",
             json={
@@ -843,14 +930,32 @@ class DiscoverTests(unittest.TestCase):
                 "scene_setting": "field",
             },
         )
+        self.assertEqual(response.status_code, 200)
         body = response.json()
-        self.assertTrue(body["simulated"])
-        self.assertGreater(len(body["items"]), 0)
-        reasons = " ".join(r for item in body["items"] for r in item["reasons"])
+        self.assertEqual(body["items"], [])
+        self.assertNotIn("simulated", body)
+        self.assertIn("Supabase", body["note"])
+        self.assertIn("unavailable", body["note"])
+
+    def test_engine_scene_keywords_match_similar_memories(self):
+        ranked = find_memories(
+            ConfirmedProfile(
+                schools=[],
+                nicknames=[],
+                locations=[],
+                years=[],
+                names_mentioned=[],
+                events=[],
+            ),
+            self.MEMORIES,
+            scene_keywords=["trophy", "banner", "field"],
+        )
+        self.assertGreater(len(ranked), 0)
+        reasons = " ".join(r for item in ranked for r in item.reasons)
         self.assertIn("Similar scene", reasons)
-        for item in body["items"]:
+        for item in ranked:
             self.assertLessEqual(
-                set(item.keys()),
+                set(item.model_dump().keys()),
                 {"id", "title", "author", "school", "place", "year", "seed", "reasons"},
             )
 

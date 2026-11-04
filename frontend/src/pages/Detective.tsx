@@ -29,10 +29,7 @@ import type { CardMatch } from '../components/ConnectionCard';
 import MediaLightbox from '../components/MediaLightbox';
 import MemoryArt from '../components/MemoryArt';
 import MemoryRescue from '../components/MemoryRescue';
-import SimBadge from '../components/SimBadge';
-import { MOCK_MATCHES } from '../data/mock';
 import {
-  analyzeMemory,
   analyzeMemoryLive,
   analyzePhotoLive,
   confirmClues,
@@ -64,7 +61,7 @@ const STAGES = [
 ];
 
 type Phase = 'idle' | 'analyzing' | 'done' | 'error';
-type Mode = 'checking' | 'live' | 'demo';
+type Mode = 'checking' | 'live' | 'unavailable';
 
 interface EditItem extends ConfirmedItem {
   origin?: 'stated' | 'inferred';
@@ -133,7 +130,6 @@ export default function Detective() {
   const [stage, setStage] = useState(0);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [mode, setMode] = useState<Mode>('checking');
-  const [demoOptIn, setDemoOptIn] = useState(false);
   const [backendUp, setBackendUp] = useState(false);
   const [error, setError] = useState('');
   const [edits, setEdits] = useState<EditItem[]>([]);
@@ -155,7 +151,7 @@ export default function Detective() {
     getStatus().then((status) => {
       if (!active) return;
       setBackendUp(status !== null);
-      setMode(status?.configured ? 'live' : 'demo');
+      setMode(status?.configured ? 'live' : 'unavailable');
     });
     return () => {
       active = false;
@@ -242,9 +238,8 @@ export default function Detective() {
       const status = await getStatus();
       const liveNow = status?.configured === true;
       setBackendUp(status !== null);
-      setMode(liveNow ? 'live' : 'demo');
-      if (!liveNow && !demoOptIn) {
-        // Honest failure, never a silent simulated substitute.
+      setMode(liveNow ? 'live' : 'unavailable');
+      if (!liveNow) {
         setError(
           status === null
             ? 'Could not reach the ReConnect server. Start the backend, then retry.'
@@ -253,13 +248,6 @@ export default function Detective() {
         setPhase('error');
         return;
       }
-      if (!liveNow) {
-        const res = await analyzeMemory();
-        setResult(res);
-        setPhase('done');
-        return;
-      }
-      setDemoOptIn(false);
       const res =
         photoFile !== null
           ? await analyzePhotoLive(photoFile, { memory, nickname })
@@ -355,14 +343,7 @@ export default function Detective() {
     );
   };
 
-  const useDemoInstead = () => {
-    setMode('demo');
-    setDemoOptIn(true);
-    setPhase('idle');
-    setError('');
-  };
-
-  const isLive = mode === 'live' && !!result && !result.simulated;
+  const isLive = mode === 'live' && !!result;
   const userInputs = [
     memory.trim() && { label: 'Memory', value: memory.trim() },
     nickname.trim() && { label: 'Nickname', value: nickname.trim() },
@@ -370,20 +351,6 @@ export default function Detective() {
     location.trim() && { label: 'Place', value: location.trim() },
   ].filter((x): x is { label: string; value: string } => !!x);
 
-  const demoCards: CardMatch[] = MOCK_MATCHES.map((m) => ({
-    id: m.id,
-    name: m.name,
-    detail: m.detail,
-    strength: m.confidence,
-    reasons: m.reasons,
-    color: m.color,
-    highlights: {
-      schools: m.school ? [m.school] : [],
-      places: m.place ? [m.place] : [],
-      years: [],
-      nicknames: [],
-    },
-  }));
   const liveCards: CardMatch[] = (matches ?? []).map(toCardMatch);
 
   const extractionCount = result?.extraction
@@ -434,7 +401,9 @@ export default function Detective() {
           </p>
         </div>
         {mode === 'live' && <span className="pill pill-green">Live AI</span>}
-        {mode === 'demo' && <SimBadge label="Simulated analysis" />}
+        {mode === 'unavailable' && (
+          <span className="pill pill-amber">AI unavailable</span>
+        )}
         {mode === 'checking' && (
           <span className="pill pill-neutral">Checking…</span>
         )}
@@ -451,10 +420,10 @@ export default function Detective() {
           </p>
         ) : (
           <p>
-            <strong>Private by default:</strong> your photo preview never leaves
-            this browser in the demo, and ReConnect AI never identifies people by
-            face. Matches are <em>possibilities with explanations</em>, not
-            verified identities.
+            <strong>Private by default:</strong> your photo stays in this
+            browser until analysis runs, and ReConnect AI never identifies
+            people by face. Matches are <em>possibilities with explanations</em>,
+            not verified identities.
           </p>
         )}
       </div>
@@ -682,13 +651,6 @@ export default function Detective() {
                 >
                   Retry analysis
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={useDemoInstead}
-                >
-                  Continue with demo data
-                </button>
               </div>
             </div>
           )}
@@ -704,11 +666,7 @@ export default function Detective() {
                 <div className="card card-pad">
                   <div className="results-title-row">
                     <h2 className="results-title">What the Detective found</h2>
-                    {result.simulated ? (
-                      <SimBadge />
-                    ) : (
-                      <span className="pill pill-green">Live AI</span>
-                    )}
+                    <span className="pill pill-green">Live AI</span>
                   </div>
                   <p className="results-summary">{result.summary}</p>
 
@@ -927,63 +885,46 @@ export default function Detective() {
                 <div className="card card-pad">
                   <div className="results-title-row">
                     <h2 className="results-title">People you may remember</h2>
-                    {result.simulated && <SimBadge label="Demo" />}
                   </div>
-                  {isLive ? (
-                    <>
-                      <p className="results-note">{matchNote}</p>
-                      {confirming && matches === null ? (
-                        <ul className="matches-grid" aria-label="Loading matches">
-                          {[0, 1, 2].map((i) => (
-                            <li key={i} className="card conn-skeleton" aria-hidden="true">
-                              <span className="skeleton skeleton-avatar" />
-                              <span className="skeleton skeleton-line" style={{ width: '60%' }} />
-                              <span className="skeleton skeleton-line" style={{ width: '85%' }} />
-                            </li>
-                          ))}
-                        </ul>
-                      ) : matches !== null && matches.length === 0 ? (
-                        <div className="matches-empty">
-                          <Users size={26} strokeWidth={1.5} aria-hidden="true" />
-                          <p>
-                            <strong>No overlaps found yet.</strong>
-                            <span>
-                              Confirm more clues above, or add a school, year,
-                              or nickname to widen the search.
-                            </span>
-                          </p>
-                        </div>
-                      ) : matches === null ? (
-                        <div className="matches-empty">
-                          <Users size={26} strokeWidth={1.5} aria-hidden="true" />
-                          <p>
-                            <strong>No search ran yet.</strong>
-                            <span>
-                              Confirm the clues above to search for people
-                              who share them.
-                            </span>
-                          </p>
-                        </div>
-                      ) : (
-                        <ul className="matches-grid">
-                          {liveCards.map((m) => (
-                            <ConnectionCard key={m.id} match={m} />
-                          ))}
-                        </ul>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="results-note">
-                        Demonstration suggestions — connect the backend to
-                        match against real people who opted in.
+                  <p className="results-note">{matchNote}</p>
+                  {confirming && matches === null ? (
+                    <ul className="matches-grid" aria-label="Loading matches">
+                      {[0, 1, 2].map((i) => (
+                        <li key={i} className="card conn-skeleton" aria-hidden="true">
+                          <span className="skeleton skeleton-avatar" />
+                          <span className="skeleton skeleton-line" style={{ width: '60%' }} />
+                          <span className="skeleton skeleton-line" style={{ width: '85%' }} />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : matches !== null && matches.length === 0 ? (
+                    <div className="matches-empty">
+                      <Users size={26} strokeWidth={1.5} aria-hidden="true" />
+                      <p>
+                        <strong>No overlaps found yet.</strong>
+                        <span>
+                          Confirm more clues above, or add a school, year,
+                          or nickname to widen the search.
+                        </span>
                       </p>
-                      <ul className="matches-grid">
-                        {demoCards.map((m) => (
-                          <ConnectionCard key={m.id} match={m} />
-                        ))}
-                      </ul>
-                    </>
+                    </div>
+                  ) : matches === null ? (
+                    <div className="matches-empty">
+                      <Users size={26} strokeWidth={1.5} aria-hidden="true" />
+                      <p>
+                        <strong>No search ran yet.</strong>
+                        <span>
+                          Confirm the clues above to search for people
+                          who share them.
+                        </span>
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="matches-grid">
+                      {liveCards.map((m) => (
+                        <ConnectionCard key={m.id} match={m} />
+                      ))}
+                    </ul>
                   )}
                 </div>
 
@@ -994,7 +935,6 @@ export default function Detective() {
                         <Images size={19} aria-hidden="true" />
                         Related community memories
                       </h2>
-                      <SimBadge label="Demo fixtures" />
                     </div>
                     {discover === null ? (
                       <p className="results-note">

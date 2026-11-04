@@ -4,9 +4,11 @@ import './SplashScreen.css';
 /* Cinematic boot splash for ReConnect AI: ambient light → rings enter and
    interlock → wordmark reveal → AI glow. Pure CSS/SVG, no dependencies.
    Timing is event-driven (animation/transition end) so it never blocks the
-   main thread and needs no JS animation loop. Shows until `ready` flips
-   (auth session restored), holds the finished logo if loading runs long,
-   then fades out and reports via onExited for unmount. */
+   main thread and needs no JS animation loop. Backdrop, glow, and wordmark
+   follow the user's saved theme via html[data-theme]. Holds the full
+   ~3.2s sequence even on fast boots, stays on the finished logo if
+   loading runs long, then fades out and reports via onExited for
+   unmount once `ready` flips (auth + page fully loaded). */
 export default function SplashScreen({
   ready,
   onExited,

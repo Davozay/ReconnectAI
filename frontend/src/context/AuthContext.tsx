@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { AuthContext, STORAGE_KEY } from './auth-context';
+import { AuthContext } from './auth-context';
 import type { SessionUser } from './auth-context';
 import { SUPABASE_CONFIGURED, requireSupabase, supabase } from '../lib/supabase';
 
@@ -21,15 +21,6 @@ function toUser(session: Session | null): SessionUser | null {
   };
 }
 
-/** Legacy simulated session (pre-Supabase). Cleared on first real load. */
-function clearLegacySession() {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    /* ignore */
-  }
-}
-
 /** Canonical email form so "User@X.com" and "user@x.com" are one account. */
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -41,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(supabase !== null);
 
   useEffect(() => {
-    clearLegacySession();
     if (!supabase) return;
     let active = true;
     supabase.auth
