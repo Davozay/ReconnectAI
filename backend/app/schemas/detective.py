@@ -266,9 +266,11 @@ PHOTO_JSON_SCHEMA: dict = {
             "type": "string",
             "description": "Exact transcription of text visible in the photo, or empty string when none is readable.",
         },
+        # Strict json_schema mode has no union types: unknown context is an
+        # empty string here (the route maps "" back to None for the API).
         "possible_context": {
-            "type": ["string", "null"],
-            "description": "Best-guess context (e.g. 'school sports event') or null when unsupported.",
+            "type": "string",
+            "description": "Best-guess context (e.g. 'school sports event') or empty string when unsupported.",
         },
         "uncertain_observations": {
             "type": "array",

@@ -27,7 +27,7 @@ async def ai_error_handler(_request: Request, exc: AIError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def home():
     return {
         "app": "ReConnect AI",

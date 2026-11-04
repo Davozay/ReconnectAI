@@ -36,7 +36,7 @@ def _get_int(name: str, default: int) -> int:
 # Meta Model API (OpenAI-compatible). Docs: Meta Developer Console.
 META_MODEL_API_BASE = os.environ.get(
     "META_MODEL_API_BASE", "https://api.meta.ai/v1"
-).rstrip("/")
+).strip().rstrip("/")
 META_MODEL_API_KEY = os.environ.get("META_MODEL_API_KEY", "").strip()
 META_MODEL_TEXT = os.environ.get("META_MODEL_TEXT", "muse-spark-1.3")
 META_MODEL_VISION = os.environ.get("META_MODEL_VISION", "muse-spark-1.3")
