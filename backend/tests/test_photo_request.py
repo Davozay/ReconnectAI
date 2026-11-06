@@ -25,9 +25,14 @@ from app.schemas.detective import (
 )
 from app.services import meta_client
 from app.services.meta_client import (
+    AIAuthError,
+    AIBadResponseError,
+    AIConnectionError,
     AINotFoundError,
+    AIRateLimitError,
     AIUnsupportedModelError,
     analyze_image_json,
+    complete_json,
 )
 
 client = TestClient(main.app)
@@ -275,6 +280,171 @@ class VisionFallbackTests(unittest.TestCase):
                     )
         create.assert_called_once()
         self.assertIn("META_MODEL_API_BASE", str(ctx.exception))
+
+    def test_404_with_schema_evidence_retries_as_plain_json(self):
+        """A 404 that names the structured-output wrapper (not the model
+        or route) gets one plain-JSON retry with the identical image."""
+        with patch.dict(os.environ, {"META_MODEL_API_KEY": "sk-test"}):
+            with patch(
+                "app.services.meta_client.openai.OpenAI"
+            ) as mock_openai:
+                create = mock_openai.return_value.chat.completions.create
+                create.side_effect = [
+                    _stub_error(
+                        "NotFoundError", 404,
+                        "The response_format parameter with strict "
+                        "json_schema is not supported by this model version",
+                        body={"error": {
+                            "code": "unsupported_parameter",
+                            "message": "strict json_schema response_format "
+                                       "is not supported here",
+                        }},
+                    ),
+                    _canned_response(_full_photo_payload()),
+                ]
+                out = analyze_image_json(
+                    b"img", "image/jpeg", "sys", "notes", PHOTO_JSON_SCHEMA
+                )
+        self.assertEqual(create.call_count, 2)
+        retry_kwargs = create.call_args_list[1].kwargs
+        self.assertNotIn("response_format", retry_kwargs)
+        parts = retry_kwargs["messages"][1]["content"]
+        images = [p for p in parts if p.get("type") == "image_url"]
+        self.assertEqual(len(images), 1)
+        _, encoded = images[0]["image_url"]["url"].split(",", 1)
+        self.assertEqual(base64.b64decode(encoded), b"img")
+        self.assertIn("JSON only", retry_kwargs["messages"][0]["content"])
+        self.assertIn("sys", retry_kwargs["messages"][0]["content"])
+        self.assertEqual(out["summary"], "Banner reads Maplewood 1998.")
+
+    def test_404_endpoint_error_does_not_retry(self):
+        with patch.dict(os.environ, {"META_MODEL_API_KEY": "sk-test"}):
+            with patch(
+                "app.services.meta_client.openai.OpenAI"
+            ) as mock_openai:
+                create = mock_openai.return_value.chat.completions.create
+                create.side_effect = _stub_error(
+                    "NotFoundError", 404, "endpoint not found",
+                    body={"error": {"code": "not_found",
+                                    "message": "endpoint not found"}},
+                )
+                with self.assertRaises(AINotFoundError):
+                    analyze_image_json(
+                        b"img", "image/png", "s", "u", PHOTO_JSON_SCHEMA
+                    )
+        create.assert_called_once()
+
+    def test_404_without_evidence_does_not_retry(self):
+        with patch.dict(os.environ, {"META_MODEL_API_KEY": "sk-test"}):
+            with patch(
+                "app.services.meta_client.openai.OpenAI"
+            ) as mock_openai:
+                create = mock_openai.return_value.chat.completions.create
+                create.side_effect = _stub_error(
+                    "NotFoundError", 404, "404 page not found"
+                )
+                with self.assertRaises(AINotFoundError):
+                    analyze_image_json(
+                        b"img", "image/png", "s", "u", PHOTO_JSON_SCHEMA
+                    )
+        create.assert_called_once()
+
+    def test_text_path_404_with_schema_evidence_also_retries(self):
+        """The 404-with-evidence fallback is shared, not vision-only."""
+        canned = MagicMock()
+        canned.choices = [MagicMock(message=MagicMock(content='{"summary": "ok"}'))]
+        with patch.dict(os.environ, {"META_MODEL_API_KEY": "sk-test"}):
+            with patch(
+                "app.services.meta_client.openai.OpenAI"
+            ) as mock_openai:
+                create = mock_openai.return_value.chat.completions.create
+                create.side_effect = [
+                    _stub_error(
+                        "NotFoundError", 404,
+                        "strict json_schema response_format not supported",
+                    ),
+                    canned,
+                ]
+                out = complete_json(
+                    "sys", "user notes", EXTRACTION_JSON_SCHEMA
+                )
+        self.assertEqual(create.call_count, 2)
+        self.assertNotIn("response_format", create.call_args_list[1].kwargs)
+        self.assertEqual(out, {"summary": "ok"})
+
+
+class VisionFallbackOutputTests(unittest.TestCase):
+    def _fallback_result(self, content):
+        canned = MagicMock()
+        canned.choices = [MagicMock(message=MagicMock(content=content))]
+        with patch.dict(os.environ, {"META_MODEL_API_KEY": "sk-test"}):
+            with patch(
+                "app.services.meta_client.openai.OpenAI"
+            ) as mock_openai:
+                create = mock_openai.return_value.chat.completions.create
+                create.side_effect = [
+                    _stub_error(
+                        "BadRequestError", 400,
+                        "Invalid response_format: strict json_schema "
+                        "is not supported",
+                    ),
+                    canned,
+                ]
+                try:
+                    out = analyze_image_json(
+                        b"img", "image/jpeg", "s", "u", PHOTO_JSON_SCHEMA
+                    )
+                except AIBadResponseError:
+                    out = None
+        return create, out
+
+    def test_fallback_malformed_json_raises_bad_response(self):
+        create, out = self._fallback_result("not json at all {{{")
+        self.assertIsNone(out)
+        self.assertEqual(create.call_count, 2)
+
+    def test_fallback_non_dict_json_raises_bad_response(self):
+        create, out = self._fallback_result('["a", "list", "not", "an", "object"]')
+        self.assertIsNone(out)
+        self.assertEqual(create.call_count, 2)
+
+    def test_fallback_empty_content_raises_bad_response(self):
+        create, out = self._fallback_result("   ")
+        self.assertIsNone(out)
+        self.assertEqual(create.call_count, 2)
+
+
+class VisionUpstreamErrorTests(unittest.TestCase):
+    def _single_call_error(self, exc, expected):
+        with patch.dict(os.environ, {"META_MODEL_API_KEY": "sk-test"}):
+            with patch(
+                "app.services.meta_client.openai.OpenAI"
+            ) as mock_openai:
+                create = mock_openai.return_value.chat.completions.create
+                create.side_effect = exc
+                with self.assertRaises(expected):
+                    analyze_image_json(
+                        b"img", "image/png", "s", "u", PHOTO_JSON_SCHEMA
+                    )
+        create.assert_called_once()
+
+    def test_auth_error_never_retries(self):
+        self._single_call_error(
+            _stub_error("AuthenticationError", 401, "invalid api key"),
+            AIAuthError,
+        )
+
+    def test_rate_limit_never_retries(self):
+        self._single_call_error(
+            _stub_error("RateLimitError", 429, "rate limit exceeded"),
+            AIRateLimitError,
+        )
+
+    def test_connection_error_never_retries(self):
+        self._single_call_error(
+            _stub_error("APIConnectionError", None, "connection failed"),
+            AIConnectionError,
+        )
 
 
 class SanitizedLoggingTests(unittest.TestCase):

@@ -248,22 +248,64 @@ _SCHEMA_REJECTION_HINTS = (
     "oneof",
 )
 
+#: 404 vocabulary that proves the failure is about the model name, route,
+#: or deployment instead of the structured-output wrapper. Such 404s are
+#: never retried as plain JSON.
+_404_UNRELATED_HINTS = (
+    "model_not_found",
+    "model not found",
+    "no such model",
+    "unknown model",
+    "does not exist",
+    "no such endpoint",
+    "endpoint not found",
+    "unknown endpoint",
+    "route not found",
+    "no such route",
+    "resource not found",
+    "deployment",
+)
+
+
+def _error_text(exc: Exception) -> str:
+    """Lowercased failure text: exception message plus the structured
+    vendor code/message when present. Detection reads this (raw) while
+    logging uses the redacted sibling, so generic API errors whose useful
+    detail lives in the body are still classified correctly."""
+    parts = [str(exc)]
+    body = getattr(exc, "body", None)
+    if isinstance(body, dict):
+        err = body.get("error", body)
+        if isinstance(err, dict):
+            parts.append(str(err.get("code", err.get("type", "")) or ""))
+            parts.append(str(err.get("message", "") or ""))
+        elif isinstance(err, str):
+            parts.append(err)
+    return " ".join(parts).lower()
+
 
 def _looks_like_schema_rejection(exc: Exception) -> bool:
     """True when the vendor rejected response_format rather than the content.
 
     Image/vision/modality errors are excluded: a model that cannot see must
-    map to AIUnsupportedModelError immediately, not burn a retry.
+    map to AIUnsupportedModelError immediately, not burn a retry. A 404 only
+    qualifies when the wrapper is named AND nothing points at the model
+    name, route, or deployment instead — unrelated 404s, auth, rate
+    limits, and network failures never retry.
     """
-    message = str(exc).lower()
-    if "image" in message or "vision" in message or "modality" in message:
+    text = _error_text(exc)
+    if "image" in text or "vision" in text or "modality" in text:
         return False
-    if not any(hint in message for hint in _SCHEMA_REJECTION_HINTS):
+    if not any(hint in text for hint in _SCHEMA_REJECTION_HINTS):
         return False
     status = getattr(exc, "status_code", None)
     if status is None:
-        return "response_format" in message or "response format" in message
-    return status in (400, 422)
+        return "response_format" in text or "response format" in text
+    if status in (400, 422):
+        return True
+    if status == 404:
+        return not any(hint in text for hint in _404_UNRELATED_HINTS)
+    return False
 
 
 def _json_schema_format(schema: dict[str, Any], default_name: str) -> dict[str, Any]:
@@ -472,7 +514,7 @@ def analyze_image_json(
 def _raise_unsupported_or_sdk(exc: Exception, model: str) -> AIError:
     """Detect vision-incapable models so callers can guide the user to
     manual entry instead of asking a blind model to describe a photo."""
-    message = str(exc).lower()
+    message = _error_text(exc)
     status = getattr(exc, "status_code", None)
     mentions_images = "image" in message or "vision" in message or "modality" in message
     mentions_unsupported = (

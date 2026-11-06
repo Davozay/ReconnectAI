@@ -40,7 +40,10 @@ META_MODEL_API_BASE = os.environ.get(
 META_MODEL_API_KEY = os.environ.get("META_MODEL_API_KEY", "").strip()
 META_MODEL_TEXT = os.environ.get("META_MODEL_TEXT", "muse-spark-1.3")
 META_MODEL_VISION = os.environ.get("META_MODEL_VISION", "muse-spark-1.3")
-META_MODEL_TIMEOUT = _get_float("META_MODEL_TIMEOUT", 30.0)
+# Vision reasoning is slow: a full Memory Detective photo analysis measured
+# ~35s end to end against api.meta.ai, so the default must clear that with
+# headroom (the frontend photo call already allows 90s).
+META_MODEL_TIMEOUT = _get_float("META_MODEL_TIMEOUT", 90.0)
 
 # Photo upload guardrails.
 DETECTIVE_MAX_PHOTO_BYTES = _get_int("DETECTIVE_MAX_PHOTO_BYTES", 8 * 1024 * 1024)

@@ -29,7 +29,7 @@ photographs, shared memories, contextual clues, and consent-based connections.
 
 **[Live Application](https://thereconnect-ai.vercel.app/)** ·
 **[GitHub Repository](https://github.com/Davozay/ReconnectAI)** ·
-**Demo Video** *(coming soon — placeholder for submission)*
+**[Demo Video](https://youtu.be/xZNhpcX54ro?si=COSNZqFmWqTfsEww)**
 
 </div>
 
@@ -271,21 +271,17 @@ leaves the server.
 
 ## Screenshots and Demonstration
 
-> Screenshots are being captured for the submission. The placeholders below
-> will be replaced with real captures from the live app before final review —
-> no image links point at files that do not exist yet.
-
 | Landing page | Home feed & composer |
 |---|---|
-| *Screenshot placeholder* | *Screenshot placeholder* |
+| ![Landing page](assets/landing_page.png) | ![Home feed and composer](assets/Home_feed_and_composer.png) |
 
 | Memory Detective (AI analysis) | Discover & reconnection |
 |---|---|
-| *Screenshot placeholder* | *Screenshot placeholder* |
+| ![Memory Detective AI analysis](assets/Memory_detective_ai_analysis.png) | ![Discover and reconnections](assets/Discover_and_reconnections.png) |
 
-**Demo video:** *placeholder — video URL to be added before submission.*
+**Demo video:** [Watch on YouTube](https://youtu.be/xZNhpcX54ro?si=COSNZqFmWqTfsEww)
 
-In the meantime, the fastest demo is the live app itself:
+Or try the live app itself:
 **[thereconnect-ai.vercel.app](https://thereconnect-ai.vercel.app/)** — the
 Memory Detective works without signing in.
 
