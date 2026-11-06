@@ -463,6 +463,8 @@ Planned — **not yet implemented**:
 - Multi-photo memory posts and richer story effects.
 - Expanded moderation tooling and community analytics.
 - Additional auth providers (OAuth) alongside email/password.
+- Native mobile app (iOS/Android) — the current build is a mobile-first web
+  app; a dedicated app with push notifications and camera integration is next.
 
 ## Creator
 
