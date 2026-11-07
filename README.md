@@ -332,10 +332,12 @@ cd backend
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # then fill in your own values (see below)
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8001
 ```
 
-The API starts at `http://localhost:8000`. Run the backend test suite with:
+The API starts at `http://localhost:8001` (port 8001 avoids clashing with
+local OpenAI-compatible model servers, which default to 8000). Run the
+backend test suite with:
 
 ```sh
 python -m pytest -q
@@ -343,7 +345,7 @@ python -m pytest -q
 
 ### 5. Wire them together
 
-Set `VITE_API_URL=http://localhost:8000` in `frontend/.env.local` and make
+Set `VITE_API_URL=http://localhost:8001` in `frontend/.env.local` and make
 sure the backend's `CORS_ORIGINS` includes `http://localhost:5173`. Then
 register at `/signup`, confirm via inbox, and log in.
 
@@ -358,7 +360,7 @@ Never commit real secrets.
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=paste-your-publishable-key-here
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8001
 ```
 
 Find the Supabase values under **Project Settings → API** in your Supabase

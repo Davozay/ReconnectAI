@@ -78,7 +78,7 @@ ignores `NEXT_PUBLIC_*` variables:
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=paste-your-publishable-key-here
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8001
 ```
 
 Find both values under **Project Settings → API**. Only the publishable key
@@ -112,7 +112,7 @@ refresh on rotation). Optional overrides:
 - `SHIELD_ADMIN_IDS` — comma-separated admin user IDs for moderation routes.
 - `CORS_ORIGINS` — must include the frontend origin (default `http://localhost:5173`).
 
-Start the API with `uvicorn main:app --reload` from `backend/`.
+Start the API with `uvicorn main:app --reload --port 8001` from `backend/`.
 
 ## 5. Verify end to end (Phase 8 checklist)
 

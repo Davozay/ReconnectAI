@@ -8,7 +8,7 @@ import { ApiError } from './api';
 import { supabase } from './supabase';
 import type { SessionUser } from '../context/auth-context';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8001';
 
 export interface ShieldStatus {
   enabled: boolean;
