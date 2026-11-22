@@ -171,6 +171,22 @@
   .composer-prompts {
     display: none;
   }
+  /* Photo + share + post (~350px) overflow narrow phones: Post gets
+     its own full-width row instead of clipping. */
+  .composer-foot {
+    flex-wrap: wrap;
+  }
+  .composer-foot > .btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* Own posts carry an absolute Delete button top-right; shift the locale
+   pill left of it so the two never stack (locale hides itself ≤520px). */
+@media (min-width: 521px) {
+  .feed-post-wrap.is-mine .post-card-locale {
+    right: 7.75rem;
+  }
 }
 
 /* Post list */

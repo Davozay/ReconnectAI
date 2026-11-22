@@ -8,6 +8,10 @@
   align-items: center;
   margin-bottom: 0.7rem;
 }
+.post-card-id {
+  flex: 1;
+  min-width: 0;
+}
 .post-card-author {
   margin: 0;
   font-weight: 700;

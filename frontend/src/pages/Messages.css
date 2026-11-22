@@ -24,6 +24,14 @@
   }
 }
 
+/* Tablet: the wide-chat override above must not undo the compact icon
+   sidebar (same specificity, later rule wins in this range). */
+@media (min-width: 861px) and (max-width: 1023px) {
+  .dash:has(.messages-page) {
+    grid-template-columns: 78px minmax(0, 1fr);
+  }
+}
+
 /* ---------- conversation list ---------- */
 
 .msg-list-pane {

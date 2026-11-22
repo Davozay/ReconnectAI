@@ -641,7 +641,7 @@ export default function Feed() {
               const authorName = mine ? name : (author?.display_name ?? null);
               return (
                 <Fragment key={m.id}>
-                  <div className="feed-post-wrap">
+                  <div className={mine ? 'feed-post-wrap is-mine' : 'feed-post-wrap'}>
                 <PostCard
                   post={toPost(m, authorName)}
                   currentUser={name}

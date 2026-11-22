@@ -47,6 +47,16 @@ export default function MarketingLayout() {
             Built for the Meta Global AI Developer Hackathon 2026 · Demo
             preview
           </small>
+          <small>
+            Created by{' '}
+            <a
+              href="https://daveozay.onrender.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              DaveOzay☦
+            </a>
+          </small>
         </div>
       </footer>
     </div>

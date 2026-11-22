@@ -224,6 +224,19 @@
   .profile-actions .btn {
     padding: 0.6rem 0.8rem;
   }
+  /* Avatar + Share + Edit profile (~300px) overflow ≤360px screens:
+     actions drop to a full-width row under the avatar. */
+  .profile-head {
+    flex-wrap: wrap;
+  }
+  .profile-actions {
+    flex: 1 1 100%;
+    margin-top: 0.75rem;
+  }
+  .profile-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
   .memory-grid {
     gap: 0.35rem;
   }

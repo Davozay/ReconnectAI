@@ -89,7 +89,19 @@
   margin-top: 2rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 .marketing-foot-base small {
   color: #767da0;
+}
+.marketing-foot-base a {
+  color: #c9cfe6;
+  font-weight: 600;
+}
+.marketing-foot-base a:hover {
+  color: #fffdf6;
 }
